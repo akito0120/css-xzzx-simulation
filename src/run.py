@@ -11,13 +11,14 @@ from threshold import SamplePoint, estimate_p_th
 if __name__ == "__main__":
     etas = [0.5, 3, 10]
     distances = [3, 5, 7, 9, 11]
-    physical_error_rates = ps = list(np.linspace(0.05, 0.30, 12))
-
-    # Sample points for FSS fitting
-    css_sample_points: List[SamplePoint] = []
-    xzzx_sample_points: List[SamplePoint] = []
+    physical_error_rates = ps = list(np.linspace(0.05, 0.50, 12))
 
     for eta in etas:
+        # Sample points for FSS fitting
+        css_sample_points: List[SamplePoint] = []
+        xzzx_sample_points: List[SamplePoint] = []
+
+        # Simulated logical errors: code type + distance -> logical errors
         css_results: Dict[str, np.ndarray] = {}
         xzzx_results: Dict[str, np.ndarray] = {}
 
