@@ -33,10 +33,10 @@ if __name__ == "__main__":
                     with open(f"{outdir}/{code.name}.svg", "w") as f:
                         f.write(str(svg))
 
-                    logical_error_rate = estimate_logical_error_rate(circuit, shots=100_000)
-                    print(f"Result: logical error rate = {logical_error_rate}")
+                    p_L, sigma = estimate_logical_error_rate(circuit, shots=100_000)
+                    print(f"Result: p_L = {p_L}, sigma = {sigma}")
 
-                    result.append(logical_error_rate)
+                    result.append(p_L)
 
                 results[f"{code_type}_d{distance}"] = np.array(result)
 

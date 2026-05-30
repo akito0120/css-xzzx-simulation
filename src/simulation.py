@@ -13,5 +13,5 @@ def estimate_logical_error_rate(circuit: stim.Circuit, shots: int = 100_000):
     total_errors = int(np.count_nonzero(mism))
 
     p_L = total_errors / shots
-    return p_L
-
+    sigma = np.sqrt(p_L * (1 - p_L) / shots)
+    return p_L, sigma
