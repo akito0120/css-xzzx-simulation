@@ -1,5 +1,5 @@
 import stim
-from codes import QecCode, Coord
+from qec_code import QecCode, Coord
 from typing import Tuple, Dict
 
 CGATE = {"X": "CX", "Y": "CY", "Z": "CZ"}

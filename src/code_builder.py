@@ -1,4 +1,4 @@
-from codes import QecCode, Coord
+from qec_code import QecCode, Coord
 from typing import Dict, List, Tuple
 
 def build_rotated_surface_code(distance: int) -> QecCode:

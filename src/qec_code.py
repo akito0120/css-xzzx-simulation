@@ -12,4 +12,4 @@ class QecCode:
     stabilizers: Dict[Coord, Dict[Coord, str]] # Ancilla coordinate -> (data qubit coordinate -> X/Z)
     logical_x: Dict[Coord, str] # Logical X operator
     logical_z: Dict[Coord, str] # Logical Z operator
-    hset: set = field(default_factory=set)
+    hset: set = field(default_factory=set) # Set of data qubit coords that are Hadamard-deformed relative to the CSS
