@@ -7,18 +7,24 @@ The noise model is the code capacity model, where independent biased Pauli noise
 
 Biased Pauli noise is parameterized by the bias
 
-```
-eta = p_Z / (p_X + p_Y), with p_X = p_Y, p = p_X + p_Y + p_Z
-```
+$$
+\begin{align*}
+& \eta = \frac{p_Z}{p_X + p_Y} \\
+& p_X = p_Y \\
+& p = p_X + p_Y + p_Z \\ \\
+\end{align*}
+$$
 
 so that
 
-```
-p_X = p_Y = p / (2 (1 + eta))
-p_Z = p * eta / (1 + eta)
-```
+$$
+\begin{align*}
+& p_X = p_Y = \frac{p}{2 \cdot (1 + \eta)} \\[15px]
+& p_Z = \frac{p \cdot \eta}{1 + \eta}
+\end{align*}
+$$
 
-eta = 0.5 is standard depolarizing noise; eta -> inf is pure dephasing (Z only). p is the total single-qubit error probability.
+$\eta = 0.5$ is standard depolarizing noise; $\eta \rightarrow \inf$ is pure dephasing (Z only). $p$ is the total single-qubit error probability.
 
 ## Memory Basis
 
