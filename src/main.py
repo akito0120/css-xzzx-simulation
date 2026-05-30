@@ -7,8 +7,15 @@ from typing import Dict, List
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from threshold import SamplePoint, estimate_p_th
+import argparse
 
 if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--outdir", default="results")
+    ap.add_argument("--threshold", action="store_true", default=False)
+    ap.add_argument("--shots", default=100_000)
+    args = ap.parse_args()
+
     etas = [0.5, 3, 10]
     distances = [3, 5, 7, 9, 11]
     physical_error_rates = ps = list(np.linspace(0.05, 0.50, 12))
@@ -31,17 +38,16 @@ if __name__ == "__main__":
                     code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
                     circuit = build_circuit(code, physicall_error_rate, eta)
 
-                    print(f"Simulating {code.name} with p = {physicall_error_rate}, eta = {eta}")
+                    print(f"Simulating {code.name} with p = {physicall_error_rate:.3}, eta = {eta}")
 
                     svg =  circuit.diagram("detslice-svg")
 
-                    outdir = "results"
-                    os.makedirs(outdir, exist_ok=True)
-                    with open(f"{outdir}/{code.name}.svg", "w") as f:
+                    os.makedirs(args.outdir, exist_ok=True)
+                    with open(f"{args.outdir}/{code.name}.svg", "w") as f:
                         f.write(str(svg))
 
-                    p_L, sigma = estimate_logical_error_rate(circuit, shots=100_000)
-                    print(f"Result: p_L = {p_L}, sigma = {sigma}")
+                    p_L, sigma = estimate_logical_error_rate(circuit, shots=int(args.shots))
+                    print(f"Result: p_L = {p_L}, sigma = {sigma:.3}")
 
                     result.append(p_L)
 
@@ -83,8 +89,9 @@ if __name__ == "__main__":
             ax.plot(physical_error_rates, y_data, marker='o', label=label, color=xzzx_colors[i])
 
         # Draw thresholds
-        ax.axvline(x = css_p_th, label=f"CSS p_th = {css_p_th:.3f}", color=css_colors[len(distances)], linestyle="--")
-        ax.axvline(x = xzzx_p_th, label=f"XZZX p_th = {xzzx_p_th:.3f}", color=xzzx_colors[len(distances)], linestyle="--")
+        if(args.threshold):
+            ax.axvline(x = css_p_th, label=f"CSS p_th = {css_p_th:.3f}", color=css_colors[len(distances)], linestyle="--")
+            ax.axvline(x = xzzx_p_th, label=f"XZZX p_th = {xzzx_p_th:.3f}", color=xzzx_colors[len(distances)], linestyle="--")
 
         ax.set_xscale('linear')
         ax.set_yscale('log')
@@ -96,4 +103,4 @@ if __name__ == "__main__":
         ax.grid(True, which="both", alpha=0.5)
         ax.legend()
 
-        plt.savefig(f"{outdir}/result_{eta}.png")
+        plt.savefig(f"{args.outdir}/result_{eta}.png")
