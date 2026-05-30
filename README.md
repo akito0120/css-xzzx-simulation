@@ -35,7 +35,7 @@ The threshold is estimated using finite-size scaling (FSS) analysis of the logic
 We assume the standard scaling form
 
 $$
-p_L = f\!\left((p - p_{\mathrm{th}}) \cdot d^{\frac{1}{\nu}}\right)
+p_L(p, d) = f\left((p - p_{\mathrm{th}}) \cdot d^{\frac{1}{\nu}}\right)
 $$
 
 where $p$ is the physical error rate, $d$ is the code distance, $p_{\mathrm{th}}$ is the threshold, and $\nu$ is the critical exponent.
