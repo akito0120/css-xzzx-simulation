@@ -19,7 +19,7 @@ so that
 
 $$
 \begin{align*}
-& p_X = p_Y = \frac{p}{2 \cdot (1 + \eta)} \\[15px]
+& p_X = p_Y = \frac{p}{2 \cdot (1 + \eta)} \\
 & p_Z = \frac{p \cdot \eta}{1 + \eta}
 \end{align*}
 $$
