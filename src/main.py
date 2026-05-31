@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from threshold import SamplePoint, estimate_p_th
 import argparse
+import stim
+from qec_code import QecCode
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -19,6 +21,8 @@ if __name__ == "__main__":
     etas = [0.5, 3, 10]
     distances = [3, 5, 7, 9, 11]
     physical_error_rates = ps = list(np.linspace(0.05, 0.50, 12))
+
+    os.makedirs(f"{args.outdir}", exist_ok=True)
 
     for eta in etas:
         # Sample points for FSS fitting
@@ -39,12 +43,6 @@ if __name__ == "__main__":
                     circuit = build_circuit(code, physicall_error_rate, eta)
 
                     print(f"Simulating {code.name} with p = {physicall_error_rate:.3}, eta = {eta}")
-
-                    svg =  circuit.diagram("detslice-svg")
-
-                    os.makedirs(args.outdir, exist_ok=True)
-                    with open(f"{args.outdir}/{code.name}.svg", "w") as f:
-                        f.write(str(svg))
 
                     p_L, sigma = estimate_logical_error_rate(circuit, shots=int(args.shots))
                     print(f"Result: p_L = {p_L}, sigma = {sigma:.3}")
@@ -104,3 +102,22 @@ if __name__ == "__main__":
         ax.legend()
 
         plt.savefig(f"{args.outdir}/result_{eta}.png")
+    
+    # Generate circuit diagrams
+    os.makedirs(f"{args.outdir}/diagrams", exist_ok=True)
+    for distance in distances:
+        eta = etas[0]
+        p = physical_error_rates[0]
+
+        codes: List[QecCode] = [build_rotated_surface_code(distance), build_xzzx_code(distance)]
+
+        for code in codes:
+            circuit = build_circuit(code, p, eta)
+
+            detslice = circuit.diagram("detslice-svg")
+            timeline = circuit.diagram("timeline-svg")
+
+            with open(f"{args.outdir}/diagrams/{code.name}_detslice.svg", "w") as f:
+                f.write(str(detslice))
+            with open(f"{args.outdir}/diagrams/{code.name}_timeline.svg", "w") as f:
+                f.write(str(timeline))
