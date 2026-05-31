@@ -9,6 +9,7 @@ import matplotlib as mpl
 from threshold import SamplePoint, estimate_threshold
 import argparse
 from qec_code import QecCode
+from rich.progress import track
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -23,7 +24,7 @@ if __name__ == "__main__":
 
     os.makedirs(f"{args.outdir}", exist_ok=True)
 
-    for eta in etas:
+    for eta in track(etas, description="Simulation"):
         # Sample points for FSS fitting
         css_sample_points: List[SamplePoint] = []
         xzzx_sample_points: List[SamplePoint] = []
@@ -33,18 +34,18 @@ if __name__ == "__main__":
         xzzx_results: Dict[str, np.ndarray] = {}
 
         # Simulation
-        for code_type in ["css", "xzzx"]:
-            for distance in distances:
+        for code_type in track(["css", "xzzx"], description=f"Simulating with eta = {eta}", transient=True):
+            for distance in track(distances, description=f"Simulating {code_type} code", transient=True):
                 result: List[float] = []
 
-                for physicall_error_rate in physical_error_rates:
+                for physicall_error_rate in track(
+                    physical_error_rates, 
+                    description=f"Simulating with d = {distance}",
+                    transient=True):
+
                     code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
                     circuit = build_circuit(code, physicall_error_rate, eta)
-
-                    print(f"Simulating {code.name} with p = {physicall_error_rate:.3}, eta = {eta}")
-
                     p_L, sigma = estimate_logical_error_rate(circuit, shots=int(args.shots))
-                    print(f"Result: p_L = {p_L}, sigma = {sigma:.3}")
 
                     result.append(p_L)
 
