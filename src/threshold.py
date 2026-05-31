@@ -12,11 +12,12 @@ class SamplePoint:
     standard_deviation: float
 
 def fss(X, p_th, nu, a, b, c):
+    # Approximation of the scaling function by a second-order polynomial
     p, d = X
     x = (p - p_th) * d ** (1.0 / nu)
     return a + (b * x) + (c * x * x)
 
-def estimate_p_th(sample_points: List[SamplePoint]):
+def estimate_threshold(sample_points: List[SamplePoint]):
     # FSS fitting with least squares
     ps = np.array([sample.physical_error_rate for sample in sample_points])
     ds = np.array([sample.distance for sample in sample_points])

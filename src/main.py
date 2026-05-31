@@ -6,9 +6,8 @@ import numpy as np
 from typing import Dict, List
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from threshold import SamplePoint, estimate_p_th
+from threshold import SamplePoint, estimate_threshold
 import argparse
-import stim
 from qec_code import QecCode
 
 if __name__ == "__main__":
@@ -68,8 +67,8 @@ if __name__ == "__main__":
                     xzzx_results[f"{code_type}_d{distance}"] = np.array(result)
 
         # FSS fitting
-        css_p_th = estimate_p_th(css_sample_points)
-        xzzx_p_th = estimate_p_th(xzzx_sample_points)
+        css_p_th = estimate_threshold(css_sample_points)
+        xzzx_p_th = estimate_threshold(xzzx_sample_points)
 
         # Draw results
         mpl.rcParams["font.family"] = "serif"
