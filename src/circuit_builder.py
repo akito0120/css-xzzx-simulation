@@ -95,6 +95,7 @@ def build_circuit(code: QecCode, p: float, eta: float) -> stim.Circuit:
         record_counter += 1
 
     # Final-round detector
+    # TODO: check if this is necessary for code capacity model
     for ancilla in ancilla_order:
         legs = code.stabilizers[ancilla]
         if(all(pauli == ("Z" if dc in code.hset else "X") for dc, pauli in legs.items())):
