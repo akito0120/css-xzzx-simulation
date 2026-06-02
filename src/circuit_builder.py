@@ -1,6 +1,6 @@
 import stim
-from qec_code import QecCode, Coord
 from typing import Tuple, Dict, List
+from code_builder import QecCode, Coord
 
 CGATE = {"X": "CX", "Y": "CY", "Z": "CZ"}
 

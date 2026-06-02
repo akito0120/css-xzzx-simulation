@@ -1,5 +1,5 @@
 import os
-from code_builder import build_rotated_surface_code, build_xzzx_code
+from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
 from circuit_builder import CircuitBuilder
 from simulation import estimate_logical_error_rate
 import numpy as np
@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from threshold import SamplePoint, estimate_threshold
 import argparse
-from qec_code import QecCode
 from rich.progress import Progress, BarColumn, TextColumn
 
 if __name__ == "__main__":
