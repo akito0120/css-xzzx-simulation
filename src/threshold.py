@@ -13,6 +13,7 @@ class SamplePoint:
 
 def fss(X, p_th, nu, a, b, c):
     # Approximation of the scaling function by a second-order polynomial
+    # TODO: take the error bias into account
     p, d = X
     x = (p - p_th) * d ** (1.0 / nu)
     return a + (b * x) + (c * x * x)
