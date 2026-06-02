@@ -12,6 +12,6 @@ def estimate_logical_error_rate(circuit: stim.Circuit, shots: int = 100_000):
     mism = np.any(pred != obs, axis=1)
     total_errors = int(np.count_nonzero(mism))
 
-    p_L = total_errors / shots
-    sigma = np.sqrt(p_L * (1 - p_L) / shots)
+    p_L = total_errors / shots # Estimated logical error rate
+    sigma = np.sqrt(p_L * (1 - p_L) / shots) # Bernoulli trial -> Standard deviation of binomial distribution
     return p_L, sigma
