@@ -1,6 +1,6 @@
 import stim
 from qec_code import QecCode, Coord
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 CGATE = {"X": "CX", "Y": "CY", "Z": "CZ"}
 
@@ -11,100 +11,114 @@ def biased_pauli_rates(p: float, eta: float) -> Tuple[float, float, float]:
     pz = p * eta / (1.0 + eta)
     return px, py, pz
 
-def build_circuit(code: QecCode, p: float, eta: float) -> stim.Circuit:
+class CircuitBuilder:
     # Noise model: code capacity
-    # Memory: X
-    
-    px, py, pz = biased_pauli_rates(p, eta)
-    circuit = stim.Circuit()
+    # Memory basis: X
 
-    # Initialize qubits
-    for coord, idx in code.data_qubits.items():
-        circuit.append("QUBIT_COORDS", [idx], [coord[0], coord[1]])
-    for coord, idx in code.ancilla_qubits.items():
-        circuit.append("QUBIT_COORDS", [idx], [coord[0], coord[1]])
+    code: QecCode
+    p: float
+    eta: float
 
-    data_list = list(code.data_qubits.values())
-    x_basis_data_list = [idx for coord, idx in code.data_qubits.items() if coord not in code.hset]
-    circuit.append("R", data_list)
-    if x_basis_data_list:
-        circuit.append("H", x_basis_data_list)
+    circuit: stim.Circuit
 
-    circuit.append("TICK")
+    record_counter: int
+    current_round: int
+    ancilla_record: Dict[Tuple[Coord, int], int]
+    ancilla_order: List[Coord]
 
-    record_counter = 0
-    current_round = 0
-    ancilla_record: Dict[Tuple[Coord, int], int] = {} # (coordinate, round) -> absolute index
-    ancilla_order = list(code.stabilizers.keys()) # To fix the order of measurement
-    
-    def syndrome_meas():
+    def __init__(self, code: QecCode, p: float, eta: float):
+        self.record_counter = 0
+        self.current_round = 0
+        self.ancilla_record = {}
+
+        self.code = code
+        self.p = p
+        self.eta = eta
+
+    def syndrome_meas(self):
         # Measure ancillas and record the (coordinate, round) -> absolute index information
-        nonlocal record_counter, current_round
-        for ancilla in ancilla_order:
-            ancilla_idx = code.ancilla_qubits[ancilla]
-            circuit.append("RX", [ancilla_idx])
+        for ancilla in self.ancilla_order:
+            ancilla_idx = self.code.ancilla_qubits[ancilla]
+            self.circuit.append("RX", [ancilla_idx])
         
-        for ancilla in ancilla_order:
-            ancilla_idx = code.ancilla_qubits[ancilla]
-            for dcoord, pauli in code.stabilizers[ancilla].items():
-                data_idx = code.data_qubits[dcoord]
-                circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
+        for ancilla in self.ancilla_order:
+            ancilla_idx = self.code.ancilla_qubits[ancilla]
+            for dcoord, pauli in self.code.stabilizers[ancilla].items():
+                data_idx = self.code.data_qubits[dcoord]
+                self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
         
-        for ancilla in ancilla_order:
-            ancilla_idx = code.ancilla_qubits[ancilla]
-            circuit.append("MX", [ancilla_idx])
-            ancilla_record[(ancilla, current_round)] = record_counter
-            record_counter += 1
+        for ancilla in self.ancilla_order:
+            ancilla_idx = self.code.ancilla_qubits[ancilla]
+            self.circuit.append("MX", [ancilla_idx])
+            self.ancilla_record[(ancilla, self.current_round)] = self.record_counter
+            self.record_counter += 1
 
-    # Create the reference point of detector
-    # Map the state to the code space
-    syndrome_meas()
-
-    circuit.append("TICK")
-
-    def rel(abs_idx):
+    def rel(self, abs_idx):
         # Return the relative index of measurement result
-        nonlocal record_counter
-        return stim.target_rec(abs_idx - record_counter)
+        return stim.target_rec(abs_idx - self.record_counter)
 
-    # Noisy round (1 round)
-    current_round += 1
-    if p > 0:
-        circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
-
-    # Syndrome extraction after noisy round
-    syndrome_meas()
-    for ancilla in ancilla_order:
-        d_now = ancilla_record[(ancilla, current_round)]
-        d_prev = ancilla_record[(ancilla, current_round - 1)]
-        circuit.append(
-            "DETECTOR",
-            [rel(d_now), rel(d_prev)],
-            [ancilla[0], ancilla[1], current_round],
-        )
-    circuit.append("TICK")
-
-    # Data readout
-    if x_basis_data_list:
-        circuit.append("H", x_basis_data_list)
-    circuit.append("M", data_list)
-
-    data_record = {}
-    for dcoord, idx in code.data_qubits.items():
-        data_record[dcoord] = record_counter
-        record_counter += 1
-
-    # Final-round detector
-    # TODO: check if this is necessary for code capacity model
-    for ancilla in ancilla_order:
-        legs = code.stabilizers[ancilla]
-        if(all(pauli == ("Z" if dc in code.hset else "X") for dc, pauli in legs.items())):
-            targets = [rel(data_record[dc]) for dc in legs]
-            targets.append(rel(ancilla_record[(ancilla, 1)]))
-            circuit.append("DETECTOR", targets, [ancilla[0], ancilla[1], 2])
+    def deform_x_basis_data(self):
+        # Apply H gate to prepare data qubits in X basis
+        x_basis_data_list = [idx for coord, idx in self.code.data_qubits.items() if coord not in self.code.hset]
+        if x_basis_data_list:
+            self.circuit.append("H", x_basis_data_list)
     
-    # Define observable
-    observable_targets = [rel(data_record[dc]) for dc in code.logical_x]
-    circuit.append("OBSERVABLE_INCLUDE", observable_targets, 0)
+    def build(self) -> stim.Circuit:
+        self.circuit = stim.Circuit()
+        self.ancilla_order = list(self.code.stabilizers.keys())
 
-    return circuit
+        px, py, pz = biased_pauli_rates(self.p, self.eta)
+        data_list = list(self.code.data_qubits.values())
+
+        # Initialize qubits
+        for coord, idx in self.code.data_qubits.items():
+            self.circuit.append("QUBIT_COORDS", [idx], [coord[0], coord[1]])
+        for coord, idx in self.code.ancilla_qubits.items():
+            self.circuit.append("QUBIT_COORDS", [idx], [coord[0], coord[1]])
+
+        self.circuit.append("R", data_list)
+        self.deform_x_basis_data()
+
+        # Create the reference point of detector
+        # Map the state to the code space
+        self.syndrome_meas()
+        self.circuit.append("TICK")
+
+        # Noisy round
+        self.current_round += 1
+        self.circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
+
+        # Syndrome extraction
+        self.syndrome_meas()
+        for ancilla in self.ancilla_order:
+            d_now = self.ancilla_record[(ancilla, self.current_round)]
+            d_prev = self.ancilla_record[(ancilla, self.current_round - 1)]
+            self.circuit.append(
+                "DETECTOR",
+                [self.rel(d_now), self.rel(d_prev)],
+                [ancilla[0], ancilla[1], self.current_round],
+            )
+        
+        # Data readout
+        self.deform_x_basis_data()
+        self.circuit.append("M", data_list)
+
+        data_record = {}
+        for dcoord, idx in self.code.data_qubits.items():
+            data_record[dcoord] = self.record_counter
+            self.record_counter += 1
+
+        # Final-round detector
+        # TODO: uncomment for phenomenological and circuit-level noise model
+        # for ancilla in self.ancilla_order:
+        #     legs = self.code.stabilizers[ancilla]
+        #     if(all(pauli == ("Z" if dc in self.code.hset else "X") for dc, pauli in legs.items())):
+        #         targets = [self.rel(data_record[dc]) for dc in legs]
+        #         targets.append(self.rel(self.ancilla_record[(ancilla, 1)]))
+        #         self.circuit.append("DETECTOR", targets, [ancilla[0], ancilla[1], 2])
+
+        # Define observable
+        observable_targets = [self.rel(data_record[dc]) for dc in self.code.logical_x]
+        self.circuit.append("OBSERVABLE_INCLUDE", observable_targets, 0)
+
+        return self.circuit
