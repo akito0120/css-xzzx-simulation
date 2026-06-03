@@ -14,18 +14,36 @@ The codes themselves are defined in [code_builder.py](css_xzzx_simulation/src/co
 ## 0. The Big Picture
 
 All three builders share the same skeleton — an **X-memory experiment** (hold a logical state in the X
-basis and measure how well it survives) — and differ **only in how noise is injected**. The inheritance is:
+basis and measure how well it survives) — and differ **only in how noise is injected**. The inheritance is
+deliberately **flat**: every model extends `BaseCircuitBuilder` only, never a sibling model.
 
 ```
-BaseCircuitBuilder                 … shared parts: qubit init, syndrome extraction, readout
+BaseCircuitBuilder                 … shared, model-independent plumbing:
+│                                    rel, deform, qubit init, syndrome_meas, final readout
 ├── CodeCapacityCircuitBuilder     … data noise once, perfect measurements
-└── PhenomenologicalCircuitBuilder … per-round data noise + measurement flips
-    └── CircuitLevelCircuitBuilder  … the above plus reset/gate/idle noise
+├── PhenomenologicalCircuitBuilder … per-round bulk data noise + measurement flips
+└── CircuitLevelCircuitBuilder     … operation-attached noise: reset/gate/idle + measurement
 ```
 
-`CircuitLevel` inherits from `Phenomenological` for a reason, not by accident:
-**circuit-level is a superset of phenomenological** (data + measurement noise, plus gate-induced noise).
-Details below.
+Why flat (no `CircuitLevel ← Phenomenological`):
+`CircuitLevel` used to inherit from `Phenomenological` to reuse its round/detector loop, but that made
+circuit-level's correctness depend on a sibling model's internals (a *fragile base class*). Since
+**code-capacity and phenomenological are finished/frozen and only circuit-level keeps evolving**, that
+coupling was all cost and no benefit. So circuit-level now **owns its own `build` / `__init__` /
+time-boundary detectors** and only reuses the stable, model-independent helpers from `Base`
+(`rel`, `deform_x_basis_data`, `init_qubit_coords`, `data_readout_and_observable`). It can now change its
+gate scheduling, idle model, etc. with zero risk to the two frozen models.
+
+Where the data noise lives differs between the two multi-round models:
+
+- **Phenomenological** lumps each round's data decoherence into a single **bulk** `PAULI_CHANNEL_1` on
+  all data qubits (the `data_round_noise()` helper).
+- **Circuit-level** has **no bulk channel at all**; its data decoherence comes from the reset, two-qubit
+  gate, and **idle** errors injected at the actual operations inside `syndrome_meas`.
+
+This is why circuit-level is a faithful "every operation is noisy" model and not just phenomenological
+with extra terms. Adding a bulk channel *on top of* the idle noise would **double-count** the data noise,
+which is exactly why circuit-level's own `build` omits it. Details in §3–§4.
 
 The "why" shared by all three models:
 
@@ -173,7 +191,7 @@ QUBIT_COORDS … ; R(data); H(deform)
 syndrome_meas()                         round 0: perfect reference
 TICK
 for _ in range(rounds):                 ★multiple rounds (default: code distance d)
-    PAULI_CHANNEL_1(data, [px,py,pz])   data noise
+    data_round_noise()                  bulk data noise (PAULI_CHANNEL_1 on all data)
     syndrome_meas(flip=p_meas)          ★with measurement flip
     DETECTOR(round_t vs round_{t-1}) × all ancillas
     TICK
@@ -189,6 +207,11 @@ be trusted:
   measurement error). The default round count is the code distance `code.distance`
   (the `__init__` in [phenomenological.py](css_xzzx_simulation/src/circuit_builder/phenomenological.py)).
   This is the standard choice of "give the time direction the same distance-d redundancy."
+- `data_round_noise()` injects the **bulk data noise**: one biased `PAULI_CHANNEL_1` over *all* data
+  qubits per round. At the phenomenological level we do not model individual gates, so every source of
+  data decoherence during a round is **lumped into this single channel** placed just before the
+  measurements. Circuit-level does not use a bulk channel at all — it models that decoherence through
+  per-operation gate and idle errors instead (§4).
 - `syndrome_meas(flip=self.p_meas)` injects the **measurement flip**. `p_meas` defaults to `p`.
 - Each round adds a detector between consecutive rounds. A measurement error shows up as a
   "detector that fires in two consecutive rounds" (a time-like edge), while a data error shows up as a
@@ -221,17 +244,29 @@ checks from the final data readout and compare them against the last round's syn
 
 [circuit_level.py](css_xzzx_simulation/src/circuit_builder/circuit_level.py)
 
-### Structure (inherits from phenomenological)
+### Structure (self-contained, extends `Base` only)
 
-`CircuitLevelCircuitBuilder` inherits from `PhenomenologicalCircuitBuilder` and **overrides only
-`syndrome_meas`**. The `build` / `__init__` / time-boundary detectors are reused as-is.
+`CircuitLevelCircuitBuilder` extends `BaseCircuitBuilder` directly and is **self-contained**: it owns its
+`__init__`, `build`, `syndrome_meas`, and `final_boundary_detectors`, reusing only the model-independent
+plumbing from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, `data_readout_and_observable`).
+It does **not** inherit from `PhenomenologicalCircuitBuilder` (see §0 for why).
 
-Why inheritance suffices:
-phenomenological's `build` does, each round,
-"`PAULI_CHANNEL_1` on data (= idle/data noise)" → "`syndrome_meas(flip=p_meas)` (= measurement noise)."
-Circuit-level is **just that plus reset and gate errors**. So we repurpose the per-round data noise in
-`build` as the **idle noise**, and inject only what is missing (reset and two-qubit gate errors) inside
-`syndrome_meas`.
+Its `build` mirrors phenomenological's round/detector loop — round 0 reference, then `rounds` noisy
+rounds each emitting a consecutive-round detector, then a perfect final readout — with **one difference**:
+there is **no bulk per-round data channel**. Circuit-level's data noise comes entirely from the **actual
+operations** inside `syndrome_meas`: reset error, two-qubit gate error, and **idle noise on data during
+the reset and measurement windows**.
+
+```python
+# circuit-level build's noisy round — no bulk data channel, just syndrome_meas:
+for _ in range(self.rounds):
+    self.current_round += 1
+    self.syndrome_meas(flip=self.p_meas)   # reset + gate + idle + measurement noise live here
+    ... emit consecutive-round detectors ...
+```
+
+If `build` *also* applied a phenomenological bulk channel here, it would fire alongside the idle channels
+each round and **double-count** the data decoherence — so it deliberately omits it.
 
 ### The overridden `syndrome_meas`
 
@@ -243,6 +278,7 @@ def syndrome_meas(self, flip=0.0):
     self.circuit.append("RX", ancilla_idxs)
     if noisy:
         self.circuit.append("PAULI_CHANNEL_1", ancilla_idxs, [px,py,pz])      # (1) reset error
+        self.circuit.append("PAULI_CHANNEL_1", data_list,    [px,py,pz])      # (3a) idle: data waits during reset
 
     for ancilla in ...:
         for dcoord, pauli in legs.items():
@@ -250,8 +286,11 @@ def syndrome_meas(self, flip=0.0):
             if noisy:
                 self.circuit.append("PAULI_CHANNEL_1", [ancilla_idx, data_idx], [px,py,pz])  # (2) 2q gate error
 
+    if noisy:
+        self.circuit.append("PAULI_CHANNEL_1", data_list, [px,py,pz])         # (3b) idle: data waits during measure
+
     for ancilla in ...:
-        self.circuit.append("MX", [ancilla_idx], flip)   # (3) measurement flip
+        self.circuit.append("MX", [ancilla_idx], flip)   # (4) measurement flip
         ...
 ```
 
@@ -265,17 +304,29 @@ at rate $(p,\eta)$**:
 |---|---|---|
 | (1) reset error | `PAULI_CHANNEL_1` on ancillas after `RX` | imperfection of the prepared \|+⟩ |
 | (2) 2q gate error | `PAULI_CHANNEL_1` on **both qubits independently** after each controlled-Pauli | imperfection of the entangling gate |
-| (3) idle/data error | `PAULI_CHANNEL_1` on data each round (**from the inherited build**) | decoherence of data during the round |
+| (3a) idle error (reset window) | `PAULI_CHANNEL_1` on **all data** right after the ancillas are reset | data decoheres while it waits for the ancillas to be reset |
+| (3b) idle error (measure window) | `PAULI_CHANNEL_1` on **all data** right before the ancillas are measured | data decoheres while it waits for the ancillas to be measured |
 | (4) measurement flip | `MX(p_meas)` | readout error |
 
 The two-qubit error is modeled as an **independent biased 1q channel on both qubits** rather than a
 **correlated 2q channel (`PAULI_CHANNEL_2`)**, because it lets us reuse the existing `biased_pauli_rates`
 directly, keeping the implementation simple and consistent (a deliberate design choice).
 
-- `noisy = self.current_round > 0` keeps **only round 0 perfect**. This avoids mis-deciding whether to
-  inject gate errors even for edge values like `p_meas=0` (it does not depend on the value of `flip`).
-- The final data readout stays perfect (inherited). The time-boundary detectors are reused as-is from
-  phenomenological.
+**Why idle noise replaces the bulk channel.**
+In a real device the data qubits are not actually idle during a round: they are repeatedly entangled by
+the gates (2), and in between they *wait* — first while every ancilla is reset, then while every ancilla
+is measured. Those two waiting windows are the genuine "idling" periods, so the idle noise is injected
+exactly there (3a, 3b), once on every data qubit per window. This is what makes circuit-level
+"operation-attached": each channel (1)–(4) maps to a concrete hardware step, with no leftover abstract
+bulk term. (Adjacent identical `PAULI_CHANNEL_1` instructions are fused by Stim — e.g. reset error + 3a
+appear as one combined channel — but that is purely cosmetic.)
+
+- `noisy = self.current_round > 0` keeps **only round 0 perfect** (the reference round gets no reset,
+  gate, or idle noise). This decision does not depend on the value of `flip`, so it stays correct even
+  for edge cases like `p_meas=0`.
+- The final data readout stays perfect (via `Base.data_readout_and_observable`). The time-boundary
+  detectors use circuit-level's own `final_boundary_detectors`, whose logic is the same prep-basis
+  reconstruction described in §3 (it is model-independent, so the two models implement it identically).
 
 
 
@@ -283,16 +334,48 @@ directly, keeping the implementation simple and consistent (a deliberate design 
 
 | Item | code capacity | phenomenological | circuit-level |
 |---|---|---|---|
-| Data noise | once | every round | every round (as idle) |
+| Data noise | once | bulk, every round (`data_round_noise`) | none (bulk disabled) |
+| Idle noise | none | none | every round, reset + measure windows |
 | Measurement noise | none | yes (`p_meas`) | yes (`p_meas`) |
 | Reset noise | none | none | yes |
 | Gate noise | none | none | yes (per 2q gate) |
 | Rounds | effectively 1 | `rounds` (default d) | `rounds` (default d) |
 | Time-boundary detectors | none | yes | yes |
-| Inherits from | `BaseCircuitBuilder` | `BaseCircuitBuilder` | `PhenomenologicalCircuitBuilder` |
+| Inherits from | `BaseCircuitBuilder` | `BaseCircuitBuilder` | `BaseCircuitBuilder` |
 
 All of them share the skeleton: **X memory**, **round 0 as a perfect reference**,
 **consecutive-round comparison detectors**, and **Z-biased noise via `biased_pauli_rates(p, eta)`**.
+
+### On the meaning of `p` across models (important)
+
+`p` is **not** a single universal physical error rate shared by the three models — each model defines it
+in its own operational terms, so **the same `(p, eta)` produces different effective error rates**, and
+this is intentional, not a bug:
+
+- **Code capacity**: `p` is the probability that a data qubit takes a Pauli error in the **single**
+  noisy channel applied once (rates summing to `p`); gates and measurements are perfect. With no
+  measurement noise and effectively one round, `p` is just the "per-data-qubit error of a single shot."
+- **Phenomenological**: `p` is the probability that a data qubit takes a Pauli error **per round**
+  (one lumped `data_round_noise()` channel, rates summing to `p`); the **same `p` also sets the
+  measurement flip** (`p_meas` defaults to `p`).
+- **Circuit-level**: `p` is the **per-operation** error rate. Reset, every two-qubit gate, each idle
+  window (reset / measure), and the measurement *each* fail independently at rate ≈ `p`. A data qubit
+  therefore passes through several fault locations per round, so its **effective per-round error is
+  larger than `p`** — exactly the standard circuit-level convention (and the reason circuit-level
+  thresholds in `p` are numerically far below phenomenological ones).
+
+Consequences:
+
+1. **Do not compare the models at the same numeric `p`.** Report each threshold on its own model's
+   `p`-axis; a smaller circuit-level threshold is expected, not a regression.
+2. **Within one model, the `(p, eta)` sweep is self-consistent**, so the CSS-vs-XZZX comparison — the
+   actual goal — is valid because it is always done at the same `p` *and* the same model.
+3. Applying the idle channel in **both** the reset window (3a) and the measure window (3b) is **not**
+   double-counting: they are two distinct physical waiting periods. (The earlier bulk-vs-idle
+   double-count, fixed by disabling `data_round_noise` in circuit-level, was a separate issue.)
+4. **Known simplification**: idle noise is injected only in the reset/measure windows, not between the
+   CX layers (no per-layer idling). This slightly *over*-estimates the threshold but affects CSS and
+   XZZX equally, so it does not bias the comparison.
 
 
 
