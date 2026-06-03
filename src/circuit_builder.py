@@ -11,8 +11,7 @@ def biased_pauli_rates(p: float, eta: float) -> Tuple[float, float, float]:
     pz = p * eta / (1.0 + eta)
     return px, py, pz
 
-# TODO: Rename to CodeCapacityCircuitBuilder
-class CircuitBuilder:
+class CodeCapacityCircuitBuilder:
     # Noise model: code capacity
     # Memory basis: X
 

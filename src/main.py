@@ -1,6 +1,6 @@
 import os
 from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
-from circuit_builder import CircuitBuilder
+from circuit_builder import CodeCapacityCircuitBuilder
 from simulation import estimate_logical_error_rate
 import numpy as np
 from typing import Dict, List
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                         for physicall_error_rate in physical_error_rates:
 
                             code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
-                            circuit = CircuitBuilder(code, physicall_error_rate, eta).build()
+                            circuit = CodeCapacityCircuitBuilder(code, physicall_error_rate, eta).build()
                             p_L, sigma = estimate_logical_error_rate(circuit, shots=int(args.shots))
 
                             result.append(p_L)
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         codes: List[QecCode] = [build_rotated_surface_code(distance), build_xzzx_code(distance)]
 
         for code in codes:
-            circuit = CircuitBuilder(code, p, eta).build()
+            circuit = CodeCapacityCircuitBuilder(code, p, eta).build()
 
             detslice = circuit.diagram("detslice-svg")
             timeline = circuit.diagram("timeline-svg")
