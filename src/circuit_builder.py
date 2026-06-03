@@ -108,15 +108,6 @@ class CodeCapacityCircuitBuilder:
             data_record[dcoord] = self.record_counter
             self.record_counter += 1
 
-        # Final-round detector
-        # TODO: uncomment for phenomenological and circuit-level noise model
-        # for ancilla in self.ancilla_order:
-        #     legs = self.code.stabilizers[ancilla]
-        #     if(all(pauli == ("Z" if dc in self.code.hset else "X") for dc, pauli in legs.items())):
-        #         targets = [self.rel(data_record[dc]) for dc in legs]
-        #         targets.append(self.rel(self.ancilla_record[(ancilla, 1)]))
-        #         self.circuit.append("DETECTOR", targets, [ancilla[0], ancilla[1], 2])
-
         # Define observable
         observable_targets = [self.rel(data_record[dc]) for dc in self.code.logical_x]
         self.circuit.append("OBSERVABLE_INCLUDE", observable_targets, 0)
