@@ -1,7 +1,7 @@
 import stim
 from typing import Tuple, Dict
 from code_builder import QecCode, Coord
-from circuit_builder import biased_pauli_rates, CGATE
+from .shared import biased_pauli_rates, CGATE
 
 def build_circuit(code: QecCode, p: float, eta: float) -> stim.Circuit:
     # Noise model: code capacity

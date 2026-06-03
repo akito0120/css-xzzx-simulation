@@ -1,14 +1,15 @@
 import os
-from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
-from circuit_builder import CodeCapacityCircuitBuilder
-from simulation import estimate_logical_error_rate
 import numpy as np
-from typing import Dict, List
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from threshold import SamplePoint, estimate_threshold
 import argparse
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from typing import Dict, List
 from rich.progress import Progress, BarColumn, TextColumn
+
+from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
+from circuit_builder.code_capacity import CodeCapacityCircuitBuilder
+from simulation import estimate_logical_error_rate
+from threshold import SamplePoint, estimate_threshold
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
