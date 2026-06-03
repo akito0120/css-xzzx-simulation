@@ -1,113 +1,22 @@
 import stim
-from typing import Tuple, Dict, List, Optional
+from typing import Dict, List, Optional
 from code_builder import QecCode, Coord
-from .shared import biased_pauli_rates, CGATE
+from .shared import BaseCircuitBuilder, biased_pauli_rates
 
-class PhenomenologicalCircuitBuilder:
-    # Noise model: phenomenological
+class PhenomenologicalCircuitBuilder(BaseCircuitBuilder):
+    # Noise model: phenomenological (per-round data noise + measurement flips)
     # Memory basis: X
 
-    code: QecCode
-    p: float
-    eta: float
     rounds: int
     p_meas: float
- 
-    circuit: stim.Circuit
 
-    record_counter: int
-    current_round: int
-    ancilla_record: Dict[Tuple[Coord, int], int]
-    ancilla_order: List[Coord]
- 
-    def __init__(self, code: QecCode, p: float, eta: float, 
+    def __init__(self, code: QecCode, p: float, eta: float,
                  rounds: Optional[int] = None, p_meas: Optional[float] = None):
-        self.code = code
-        self.p = p
-        self.eta = eta
+        super().__init__(code, p, eta)
         self.rounds = code.distance if rounds is None else rounds
         self.p_meas = p if p_meas is None else p_meas
- 
-        self.record_counter = 0
-        self.current_round = 0
-        self.ancilla_record = {}
- 
-    def rel(self, abs_idx: int) -> stim.GateTarget:
-        return stim.target_rec(abs_idx - self.record_counter)
- 
-    def deform_x_basis_data(self):
-        x_basis_data_list = [idx for coord, idx in self.code.data_qubits.items() if coord not in self.code.hset]
-        if x_basis_data_list:
-            self.circuit.append("H", x_basis_data_list)
- 
-    def syndrome_meas(self, noisy: bool):
-        # 1 round of syndrome extraction
-        # noisy=True injects a readout flip
-        flip = self.p_meas if noisy else 0.0
- 
-        for ancilla in self.ancilla_order:
-            self.circuit.append("RX", [self.code.ancilla_qubits[ancilla]])
- 
-        for ancilla in self.ancilla_order:
-            ancilla_idx = self.code.ancilla_qubits[ancilla]
-            for dcoord, pauli in self.code.stabilizers[ancilla].items():
-                self.circuit.append(CGATE[pauli],
-                                    [ancilla_idx, self.code.data_qubits[dcoord]])
- 
-        for ancilla in self.ancilla_order:
-            ancilla_idx = self.code.ancilla_qubits[ancilla]
-            if flip > 0.0:
-                self.circuit.append("MX", [ancilla_idx], flip)
-            else:
-                self.circuit.append("MX", [ancilla_idx])
-            self.ancilla_record[(ancilla, self.current_round)] = self.record_counter
-            self.record_counter += 1
- 
-    def build(self) -> stim.Circuit:
-        self.circuit = stim.Circuit()
-        self.ancilla_order = list(self.code.stabilizers.keys())
- 
-        px, py, pz = biased_pauli_rates(self.p, self.eta)
-        data_list = list(self.code.data_qubits.values())
- 
-        for coord, idx in self.code.data_qubits.items():
-            self.circuit.append("QUBIT_COORDS", [idx], [coord[0], coord[1]])
-        for coord, idx in self.code.ancilla_qubits.items():
-            self.circuit.append("QUBIT_COORDS", [idx], [coord[0], coord[1]])
- 
-        # Prepare |+> / |0> 
-        self.circuit.append("R", data_list)
-        self.deform_x_basis_data()
- 
-        # Round 0: perfect reference (projects into the code space) 
-        self.syndrome_meas(noisy=False)
-        self.circuit.append("TICK")
- 
-        # Noisy rounds
-        for _ in range(self.rounds):
-            self.current_round += 1
-            self.circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
-            self.syndrome_meas(noisy=True)
- 
-            for ancilla in self.ancilla_order:
-                d_now = self.ancilla_record[(ancilla, self.current_round)]
-                d_prev = self.ancilla_record[(ancilla, self.current_round - 1)]
-                self.circuit.append(
-                    "DETECTOR",
-                    [self.rel(d_now), self.rel(d_prev)],
-                    [ancilla[0], ancilla[1], self.current_round],
-                )
-            self.circuit.append("TICK")
- 
-        # Final perfect data readout
-        self.deform_x_basis_data()
-        self.circuit.append("M", data_list)
- 
-        data_record: Dict[Coord, int] = {}
-        for dcoord, idx in self.code.data_qubits.items():
-            data_record[dcoord] = self.record_counter
-            self.record_counter += 1
- 
+
+    def final_boundary_detectors(self, data_record: Dict[Coord, int]):
         # Per-qubit preparation/measurement basis for X-memory
         # |+> (basis X) off hset, |0> (basis Z) on hset
         prep_basis: Dict[Coord, str] = {
@@ -130,9 +39,41 @@ class PhenomenologicalCircuitBuilder:
             targets.append(self.rel(self.ancilla_record[(ancilla, last)]))
             self.circuit.append("DETECTOR", targets,
                                 [ancilla[0], ancilla[1], last + 1])
- 
-        # Logical X observable
-        observable_targets = [self.rel(data_record[dc]) for dc in self.code.logical_x]
-        self.circuit.append("OBSERVABLE_INCLUDE", observable_targets, 0)
- 
+
+    def build(self) -> stim.Circuit:
+        self.circuit = stim.Circuit()
+        self.ancilla_order = list(self.code.stabilizers.keys())
+
+        px, py, pz = biased_pauli_rates(self.p, self.eta)
+        data_list = list(self.code.data_qubits.values())
+
+        self.init_qubit_coords()
+
+        # Prepare |+> / |0>
+        self.circuit.append("R", data_list)
+        self.deform_x_basis_data()
+
+        # Round 0: perfect reference (projects into the code space)
+        self.syndrome_meas()
+        self.circuit.append("TICK")
+
+        # Noisy rounds
+        for _ in range(self.rounds):
+            self.current_round += 1
+            self.circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
+            self.syndrome_meas(flip=self.p_meas)
+
+            for ancilla in self.ancilla_order:
+                d_now = self.ancilla_record[(ancilla, self.current_round)]
+                d_prev = self.ancilla_record[(ancilla, self.current_round - 1)]
+                self.circuit.append(
+                    "DETECTOR",
+                    [self.rel(d_now), self.rel(d_prev)],
+                    [ancilla[0], ancilla[1], self.current_round],
+                )
+            self.circuit.append("TICK")
+
+        # Final perfect data readout, time-boundary detectors and logical observable
+        self.data_readout_and_observable()
+
         return self.circuit
