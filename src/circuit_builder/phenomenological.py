@@ -40,11 +40,16 @@ class PhenomenologicalCircuitBuilder(BaseCircuitBuilder):
             self.circuit.append("DETECTOR", targets,
                                 [ancilla[0], ancilla[1], last + 1])
 
+    def data_round_noise(self):
+        # Per-round bulk data noise (the phenomenological data error).
+        px, py, pz = biased_pauli_rates(self.p, self.eta)
+        self.circuit.append("PAULI_CHANNEL_1",
+                            list(self.code.data_qubits.values()), [px, py, pz])
+
     def build(self) -> stim.Circuit:
         self.circuit = stim.Circuit()
         self.ancilla_order = list(self.code.stabilizers.keys())
 
-        px, py, pz = biased_pauli_rates(self.p, self.eta)
         data_list = list(self.code.data_qubits.values())
 
         self.init_qubit_coords()
@@ -60,7 +65,7 @@ class PhenomenologicalCircuitBuilder(BaseCircuitBuilder):
         # Noisy rounds
         for _ in range(self.rounds):
             self.current_round += 1
-            self.circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
+            self.data_round_noise()
             self.syndrome_meas(flip=self.p_meas)
 
             for ancilla in self.ancilla_order:
