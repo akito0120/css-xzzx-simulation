@@ -7,7 +7,7 @@ from typing import Dict, List
 from rich.progress import Progress, BarColumn, TextColumn
 
 from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
-from circuit_builder.code_capacity import CodeCapacityCircuitBuilder
+from circuit_builder import CodeCapacityCircuitBuilder
 from simulation import estimate_logical_error_rate
 from threshold import SamplePoint, estimate_threshold
 
