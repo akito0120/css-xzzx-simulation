@@ -4,12 +4,12 @@ How the CSS rotated surface code / XZZX code are assembled into Stim circuits un
 noise models (code capacity / phenomenological / circuit-level), and the design rationale behind each.
 
 Files covered:
-- [shared.py](css_xzzx_simulation/src/circuit_builder/shared.py) — common base class `BaseCircuitBuilder`
-- [code_capacity.py](css_xzzx_simulation/src/circuit_builder/code_capacity.py) — code capacity model
-- [phenomenological.py](css_xzzx_simulation/src/circuit_builder/phenomenological.py) — phenomenological model
-- [circuit_level.py](css_xzzx_simulation/src/circuit_builder/circuit_level.py) — circuit-level model
+- [shared.py](./shared.py) — common base class `BaseCircuitBuilder`
+- [code_capacity.py](./code_capacity.py) — code capacity model
+- [phenomenological.py](./phenomenological.py) — phenomenological model
+- [circuit_level.py](./circuit_level.py) — circuit-level model
 
-The codes themselves are defined in [code_builder.py](css_xzzx_simulation/src/code_builder.py).
+The codes themselves are defined in [code_builder.py](../code_builder.py).
 
 ## 0. The Big Picture
 
@@ -57,7 +57,7 @@ The "why" shared by all three models:
 
 ## 1. Shared Building Blocks (BaseCircuitBuilder)
 
-The common methods in [shared.py](css_xzzx_simulation/src/circuit_builder/shared.py).
+The common methods in [shared.py](./shared.py).
 
 ### 1.1 Measurement-record relative indexing — `rel`
 
@@ -85,7 +85,7 @@ self.circuit.append("H", x_basis_data_list)
 
 - **CSS code**: `hset` is empty. H is applied to every data qubit, preparing them all in \|+⟩ (pure X memory).
 - **XZZX code**: the qubits in `hset` (a checkerboard subset of data qubits, see `build_xzzx_code` in
-  [code_builder.py](css_xzzx_simulation/src/code_builder.py)) are **not** given an H → they stay in
+  [code_builder.py](../code_builder.py)) are **not** given an H → they stay in
   \|0⟩ (the Z basis).
 
 Why: the XZZX code is the **Hadamard-deformed** version of the CSS code, obtained by applying H to the
@@ -118,7 +118,7 @@ Why this measures the stabilizer:
 put the ancilla in \|+⟩ (an X eigenstate) and apply controlled Paulis targeting the data; the ancilla's
 phase flips according to the eigenvalue of the stabilizer operator $S$. Measuring the ancilla in the X
 basis (`MX`) then yields the value of $S$. `CGATE = {"X":"CX","Y":"CY","Z":"CZ"}` selects the controlled
-gate matching each leg's Pauli type ([shared.py](css_xzzx_simulation/src/circuit_builder/shared.py)).
+gate matching each leg's Pauli type ([shared.py](./shared.py)).
 
 The `flip` argument is the **injection point for measurement noise**. Switching it on/off is all it takes
 to toggle between "perfect" and "noisy" measurements, which is why all three models can build on the same
@@ -146,7 +146,7 @@ self.circuit.append("OBSERVABLE_INCLUDE", observable_targets, 0)
 
 ## 2. Code Capacity Model
 
-[code_capacity.py](css_xzzx_simulation/src/circuit_builder/code_capacity.py)
+[code_capacity.py](./code_capacity.py)
 
 ### Structure
 
@@ -172,8 +172,7 @@ perfect.** Therefore:
 - There is effectively a single round: "reference → noise → measurement."
 - **No time-boundary detectors.** Because measurement is error-free, round 1's syndrome already
   represents the final state completely and is consistent with the final readout (the detectors would only
-  be redundant). This decision is also noted in the TODO comment of the legacy implementation,
-  [circuit_builder_legacy.py](css_xzzx_simulation/src/circuit_builder/circuit_builder_legacy.py).
+  be redundant).
 
 The detectors compare round 1 against round 0 because (as in §0) we look at the difference of a syndrome
 that should be unchanged in the absence of noise. Since round 0 establishes a perfect baseline, the
@@ -182,7 +181,7 @@ detectors that fire in round 1 are exactly the traces of the errors introduced b
 
 ## 3. Phenomenological Model
 
-[phenomenological.py](css_xzzx_simulation/src/circuit_builder/phenomenological.py)
+[phenomenological.py](./phenomenological.py)
 
 ### Structure
 
@@ -205,7 +204,7 @@ be trusted:
 
 - We must run **multiple rounds** (a single measurement result cannot distinguish a data error from a
   measurement error). The default round count is the code distance `code.distance`
-  (the `__init__` in [phenomenological.py](css_xzzx_simulation/src/circuit_builder/phenomenological.py)).
+  (the `__init__` in [phenomenological.py](./phenomenological.py)).
   This is the standard choice of "give the time direction the same distance-d redundancy."
 - `data_round_noise()` injects the **bulk data noise**: one biased `PAULI_CHANNEL_1` over *all* data
   qubits per round. At the phenomenological level we do not model individual gates, so every source of
@@ -242,7 +241,7 @@ checks from the final data readout and compare them against the last round's syn
 
 ## 4. Circuit-Level Model
 
-[circuit_level.py](css_xzzx_simulation/src/circuit_builder/circuit_level.py)
+[circuit_level.py](./circuit_level.py)
 
 ### Structure (self-contained, extends `Base` only)
 
