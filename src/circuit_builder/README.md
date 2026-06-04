@@ -52,7 +52,7 @@ The "why" shared by all three models:
 | **X-memory basis** | The goal is to show XZZX's advantage under Z-biased noise. We hold a logical X and read out in the X basis at the end |
 | **Round 0 is perfect (noiseless)** | To make the detector "reference point" deterministic. It projects the syndrome into the code space |
 | **Detector = comparison of consecutive rounds' syndromes** | If nothing happened, the syndrome is unchanged. A change = an error occurred in between — a difference detector |
-| **Single ancilla + controlled-Pauli** | Prepare one ancilla in \|+⟩, apply controlled Paulis to the data, and measure it in X — this measures any Pauli stabilizer |
+| **Single ancilla + controlled-Pauli** | Prepare one ancilla in $\ket{+}$, apply controlled Paulis to the data, and measure it in X — this measures any Pauli stabilizer |
 
 
 ## 1. Shared Building Blocks (BaseCircuitBuilder)
@@ -83,14 +83,14 @@ x_basis_data_list = [idx for coord, idx in self.code.data_qubits.items()
 self.circuit.append("H", x_basis_data_list)
 ```
 
-- **CSS code**: `hset` is empty. H is applied to every data qubit, preparing them all in \|+⟩ (pure X memory).
+- **CSS code**: `hset` is empty. H is applied to every data qubit, preparing them all in $\ket{+}$ (pure X memory).
 - **XZZX code**: the qubits in `hset` (a checkerboard subset of data qubits, see `build_xzzx_code` in
   [code_builder.py](../code_builder.py)) are **not** given an H → they stay in
-  \|0⟩ (the Z basis).
+  $\ket{0}$ (the Z basis).
 
 Why: the XZZX code is the **Hadamard-deformed** version of the CSS code, obtained by applying H to the
 data qubits in `hset`. The stabilizers and logical operators undergo the same deformation (the `deform`
-function). On the circuit side, we choose each data qubit's preparation basis (\|+⟩ or \|0⟩) to match
+function). On the circuit side, we choose each data qubit's preparation basis ($\ket{+}$ or $\ket{0}$) to match
 that deformation, so that **the logical X in the deformed frame is deterministic**.
 The same function is also called **right before the final readout** (H is self-inverse, so the
 preparation basis and the measurement basis coincide).
@@ -115,7 +115,7 @@ self.ancilla_record[(ancilla, current_round)] = record_counter
 ```
 
 Why this measures the stabilizer:
-put the ancilla in \|+⟩ (an X eigenstate) and apply controlled Paulis targeting the data; the ancilla's
+put the ancilla in $\ket{+}$ (an X eigenstate) and apply controlled Paulis targeting the data; the ancilla's
 phase flips according to the eigenvalue of the stabilizer operator $S$. Measuring the ancilla in the X
 basis (`MX`) then yields the value of $S$. `CGATE = {"X":"CX","Y":"CY","Z":"CZ"}` selects the controlled
 gate matching each leg's Pauli type ([shared.py](./shared.py)).
@@ -155,7 +155,7 @@ QUBIT_COORDS …                     declare qubit coordinates
 R(data); H(deform)                 prepare |+> / |0>
 syndrome_meas()                    round 0: perfect reference (project into the code space)
 TICK
-PAULI_CHANNEL_1(data, [px,py,pz])  ★the only noise: one biased Pauli channel on data
+PAULI_CHANNEL_1(data, [px,py,pz])  ▶ the only noise: one biased Pauli channel on data
 syndrome_meas()                    round 1: perfect measurement
 DETECTOR(round1 vs round0) × all ancillas
 data_readout_and_observable()      perfect readout + logical X
@@ -189,9 +189,9 @@ detectors that fire in round 1 are exactly the traces of the errors introduced b
 QUBIT_COORDS … ; R(data); H(deform)
 syndrome_meas()                         round 0: perfect reference
 TICK
-for _ in range(rounds):                 ★multiple rounds (default: code distance d)
+for _ in range(rounds):                 ▶ multiple rounds (default: code distance d)
     data_round_noise()                  bulk data noise (PAULI_CHANNEL_1 on all data)
-    syndrome_meas(flip=p_meas)          ★with measurement flip
+    syndrome_meas(flip=p_meas)          ▶ with measurement flip
     DETECTOR(round_t vs round_{t-1}) × all ancillas
     TICK
 data_readout_and_observable()           perfect readout + time-boundary detectors + logical X
@@ -301,7 +301,7 @@ at rate $(p,\eta)$**:
 
 | Location | Implementation | Intent |
 |---|---|---|
-| (1) reset error | `PAULI_CHANNEL_1` on ancillas after `RX` | imperfection of the prepared \|+⟩ |
+| (1) reset error | `PAULI_CHANNEL_1` on ancillas after `RX` | imperfection of the prepared $\ket{+}$ |
 | (2) 2q gate error | `PAULI_CHANNEL_1` on **both qubits independently** after each controlled-Pauli | imperfection of the entangling gate |
 | (3a) idle error (reset window) | `PAULI_CHANNEL_1` on **all data** right after the ancillas are reset | data decoheres while it waits for the ancillas to be reset |
 | (3b) idle error (measure window) | `PAULI_CHANNEL_1` on **all data** right before the ancillas are measured | data decoheres while it waits for the ancillas to be measured |
