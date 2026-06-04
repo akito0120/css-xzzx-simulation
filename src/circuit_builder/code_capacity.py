@@ -29,14 +29,7 @@ class CodeCapacityCircuitBuilder(BaseCircuitBuilder):
 
         # Syndrome extraction
         self.syndrome_meas()
-        for ancilla in self.ancilla_order:
-            d_now = self.ancilla_record[(ancilla, self.current_round)]
-            d_prev = self.ancilla_record[(ancilla, self.current_round - 1)]
-            self.circuit.append(
-                "DETECTOR",
-                [self.rel(d_now), self.rel(d_prev)],
-                [ancilla[0], ancilla[1], self.current_round],
-            )
+        self.consecutive_round_detectors()
 
         # Data readout + logical observable (no final-round detectors)
         data_record = self.data_readout()

@@ -24,6 +24,7 @@ abstract base. Code capacity extends `BaseCircuitBuilder` directly; the two nois
 ```
 BaseCircuitBuilder                       # model-independent plumbing:
 │                                          rel, deform, qubit init, syndrome_meas (code-cap/pheno only),
+│                                          consecutive_round_detectors,
 │                                          data_readout + define_observable (final-readout primitives)
 ├── CodeCapacityCircuitBuilder           # data noise once, perfect measurements
 └── NoisyMeasurementCircuitBuilder       # shared by the noisy-measurement models:
@@ -134,7 +135,23 @@ to toggle between "perfect" and "noisy" measurements, which is why **code-capaci
 build on this same `syndrome_meas`. **Circuit-level is the exception**: it overrides `syndrome_meas` to
 attach per-operation reset/gate/idle noise that a `flip` toggle cannot express (see §4).
 
-### 1.4 Final readout and logical observable — `data_readout` + `define_observable`
+### 1.4 Consecutive-round detectors — `consecutive_round_detectors`
+
+```python
+for ancilla in self.ancilla_order:
+    d_now  = self.ancilla_record[(ancilla, self.current_round)]
+    d_prev = self.ancilla_record[(ancilla, self.current_round - 1)]
+    self.circuit.append("DETECTOR", [self.rel(d_now), self.rel(d_prev)], [*ancilla, self.current_round])
+```
+
+Emits one detector per ancilla comparing **this round's syndrome against the previous round's**. If no
+error occurred in between, the two measurements agree and the detector stays silent; a flip signals an
+error in that interval (the difference-detector idea from §0). It reads `self.current_round` at call time,
+so the **same method serves every model**: code capacity calls it once (round 1 vs round 0), the two
+multi-round models call it each round inside their loop. Being model-independent, it lives on `Base`
+alongside `rel` / `syndrome_meas`.
+
+### 1.5 Final readout and logical observable — `data_readout` + `define_observable`
 
 `Base` provides two single-responsibility primitives; there is **no composite method**. Each `build()`
 composes them explicitly (and the noisy models slot `final_boundary_detectors` in between):
@@ -279,8 +296,9 @@ detectors — see §2.)
 `CircuitLevelCircuitBuilder` extends `NoisyMeasurementCircuitBuilder` and owns its **model-specific** parts
 — `build` and `syndrome_meas` — while *inheriting* the constructor `__init__(rounds, p_meas)` and the
 time-boundary `final_boundary_detectors` from that intermediate class, plus the model-independent plumbing
-from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, and the `data_readout` / `define_observable`
-final-readout primitives). It does **not** inherit from `PhenomenologicalCircuitBuilder` (see §0 for why).
+from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, `consecutive_round_detectors`, and the
+`data_readout` / `define_observable` final-readout primitives). It does **not** inherit from
+`PhenomenologicalCircuitBuilder` (see §0 for why).
 
 Its `build` mirrors phenomenological's round/detector loop — round 0 reference, then `rounds` noisy
 rounds each emitting a consecutive-round detector, then a perfect final readout — with **one difference**:

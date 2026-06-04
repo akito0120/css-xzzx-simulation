@@ -63,15 +63,7 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
         for _ in range(self.rounds):
             self.current_round += 1
             self.syndrome_meas(flip=self.p_meas)
-
-            for ancilla in self.ancilla_order:
-                d_now = self.ancilla_record[(ancilla, self.current_round)]
-                d_prev = self.ancilla_record[(ancilla, self.current_round - 1)]
-                self.circuit.append(
-                    "DETECTOR",
-                    [self.rel(d_now), self.rel(d_prev)],
-                    [ancilla[0], ancilla[1], self.current_round],
-                )
+            self.consecutive_round_detectors()
             self.circuit.append("TICK")
 
         # Final perfect data readout, time-boundary detectors and logical observable

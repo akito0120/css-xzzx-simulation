@@ -67,6 +67,18 @@ class BaseCircuitBuilder:
             self.ancilla_record[(ancilla, self.current_round)] = self.record_counter
             self.record_counter += 1
 
+    def consecutive_round_detectors(self):
+        # Compare every ancilla's syndrome in the current round against the previous round.
+        # A change between consecutive rounds flags an error that occurred in between.
+        for ancilla in self.ancilla_order:
+            d_now = self.ancilla_record[(ancilla, self.current_round)]
+            d_prev = self.ancilla_record[(ancilla, self.current_round - 1)]
+            self.circuit.append(
+                "DETECTOR",
+                [self.rel(d_now), self.rel(d_prev)],
+                [ancilla[0], ancilla[1], self.current_round],
+            )
+
     def data_readout(self) -> Dict[Coord, int]:
         # Final perfect data readout in the X-memory basis.
         # Returns coord -> absolute measurement index.
