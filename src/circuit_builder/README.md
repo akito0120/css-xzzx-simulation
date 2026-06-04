@@ -18,11 +18,11 @@ basis and measure how well it survives) — and differ **only in how noise is in
 deliberately **flat**: every model extends `BaseCircuitBuilder` only, never a sibling model.
 
 ```
-BaseCircuitBuilder                 … shared, model-independent plumbing:
-│                                    rel, deform, qubit init, syndrome_meas, final readout
-├── CodeCapacityCircuitBuilder     … data noise once, perfect measurements
-├── PhenomenologicalCircuitBuilder … per-round bulk data noise + measurement flips
-└── CircuitLevelCircuitBuilder     … operation-attached noise: reset/gate/idle + measurement
+BaseCircuitBuilder                 # shared, model-independent plumbing:
+│                                    rel, deform, qubit init, syndrome_meas (code-cap/pheno only), final readout
+├── CodeCapacityCircuitBuilder     # data noise once, perfect measurements
+├── PhenomenologicalCircuitBuilder # per-round bulk data noise + measurement flips
+└── CircuitLevelCircuitBuilder     # operation-attached noise: reset/gate/idle + measurement
 ```
 
 Why flat (no `CircuitLevel ← Phenomenological`):
@@ -121,8 +121,9 @@ basis (`MX`) then yields the value of $S$. `CGATE = {"X":"CX","Y":"CY","Z":"CZ"}
 gate matching each leg's Pauli type ([shared.py](./shared.py)).
 
 The `flip` argument is the **injection point for measurement noise**. Switching it on/off is all it takes
-to toggle between "perfect" and "noisy" measurements, which is why all three models can build on the same
-`syndrome_meas`.
+to toggle between "perfect" and "noisy" measurements, which is why **code-capacity and phenomenological**
+build on this same `syndrome_meas`. **Circuit-level is the exception**: it overrides `syndrome_meas` to
+attach per-operation reset/gate/idle noise that a `flip` toggle cannot express (see §4).
 
 ### 1.4 Final readout and logical observable — `data_readout_and_observable`
 
