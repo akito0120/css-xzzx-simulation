@@ -5,7 +5,7 @@ from .base import BaseCircuitBuilder
 class NoisyMeasurementCircuitBuilder(BaseCircuitBuilder):
     # Shared base for the noisy-measurement models (phenomenological, circuit-level).
     # These run multiple rounds because a single measurement cannot be trusted
-    # and　close the time boundary with detectors reconstructed from the final data readout.
+    # and close the time boundary with detectors reconstructed from the final data readout.
 
     rounds: int
     p_meas: float
