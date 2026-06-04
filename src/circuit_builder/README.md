@@ -4,7 +4,9 @@ How the CSS rotated surface code / XZZX code are assembled into Stim circuits un
 noise models (code capacity / phenomenological / circuit-level), and the design rationale behind each.
 
 Files covered:
-- [shared.py](./shared.py) — common base class `BaseCircuitBuilder`
+- [base.py](./base.py) — common base class `BaseCircuitBuilder`
+- [shared.py](./shared.py) — model-independent helpers (`biased_pauli_rates`, `CGATE`)
+- [noisy_measurement.py](./noisy_measurement.py) — intermediate class `NoisyMeasurementCircuitBuilder` (phenomenological + circuit-level)
 - [code_capacity.py](./code_capacity.py) — code capacity model
 - [phenomenological.py](./phenomenological.py) — phenomenological model
 - [circuit_level.py](./circuit_level.py) — circuit-level model
@@ -14,26 +16,31 @@ The codes themselves are defined in [code_builder.py](../code_builder.py).
 ## 0. The Big Picture
 
 All three builders share the same skeleton — an **X-memory experiment** (hold a logical state in the X
-basis and measure how well it survives) — and differ **only in how noise is injected**. The inheritance is
-deliberately **flat**: every model extends `BaseCircuitBuilder` only, never a sibling model.
+basis and measure how well it survives) — and differ **only in how noise is injected**. The hierarchy is
+**two-level** and the key invariant is that **no model inherits from a sibling model** — only from an
+abstract base. Code capacity extends `BaseCircuitBuilder` directly; the two noisy-measurement models
+(phenomenological, circuit-level) extend an intermediate `NoisyMeasurementCircuitBuilder`.
 
 ```
-BaseCircuitBuilder                 # shared, model-independent plumbing:
-│                                    rel, deform, qubit init, syndrome_meas (code-cap/pheno only),
-│                                    final readout, time-boundary detectors (used by pheno + circuit-level)
-├── CodeCapacityCircuitBuilder     # data noise once, perfect measurements
-├── PhenomenologicalCircuitBuilder # per-round bulk data noise + measurement flips
-└── CircuitLevelCircuitBuilder     # operation-attached noise: reset/gate/idle + measurement
+BaseCircuitBuilder                       # model-independent plumbing:
+│                                          rel, deform, qubit init, syndrome_meas (code-cap/pheno only),
+│                                          data_readout + define_observable (final-readout primitives)
+├── CodeCapacityCircuitBuilder           # data noise once, perfect measurements
+└── NoisyMeasurementCircuitBuilder       # shared by the noisy-measurement models:
+      │                                    __init__(rounds, p_meas) + real time-boundary detectors
+      ├── PhenomenologicalCircuitBuilder # per-round bulk data noise + measurement flips
+      └── CircuitLevelCircuitBuilder     # operation-attached noise: reset/gate/idle + measurement
 ```
 
-Why flat (no `CircuitLevel ← Phenomenological`):
+Why the intermediate class (and not `CircuitLevel ← Phenomenological`):
 `CircuitLevel` used to inherit from `Phenomenological` to reuse its round/detector loop, but that made
-circuit-level's correctness depend on a sibling model's internals (a *fragile base class*). Since
-**code-capacity and phenomenological are finished/frozen and only circuit-level keeps evolving**, that
-coupling was all cost and no benefit. So circuit-level now **owns its own `build` / `__init__` /
-`syndrome_meas`** and only reuses the stable, model-independent helpers from `Base` (`rel`,
-`deform_x_basis_data`, `init_qubit_coords`, `data_readout_and_observable`, and `final_boundary_detectors`).
-It can now change its gate scheduling, idle model, etc. with zero risk to the two frozen models.
+circuit-level's correctness depend on a *sibling* model's internals (a *fragile base class*). The fix is an
+**abstract intermediate**, not sibling inheritance: `NoisyMeasurementCircuitBuilder` holds only what the two
+noisy-measurement models genuinely share and code capacity does not need — the `__init__(rounds, p_meas)`
+constructor and the time-boundary `final_boundary_detectors`. Since **code-capacity and phenomenological are
+finished/frozen and only circuit-level keeps evolving**, circuit-level still **owns its own `build` and
+`syndrome_meas`** (the model-specific parts) and merely *inherits* the stable shared constructor and
+boundary detectors. It can change its gate scheduling, idle model, etc. with zero risk to the frozen models.
 
 Where the data noise lives differs between the two multi-round models:
 
@@ -58,7 +65,8 @@ The "why" shared by all three models:
 
 ## 1. Shared Building Blocks (BaseCircuitBuilder)
 
-The common methods in [shared.py](./shared.py).
+The common methods in [base.py](./base.py). (The model-independent helpers `biased_pauli_rates` and
+`CGATE` live in [shared.py](./shared.py).)
 
 ### 1.1 Measurement-record relative indexing — `rel`
 
@@ -126,24 +134,37 @@ to toggle between "perfect" and "noisy" measurements, which is why **code-capaci
 build on this same `syndrome_meas`. **Circuit-level is the exception**: it overrides `syndrome_meas` to
 attach per-operation reset/gate/idle noise that a `flip` toggle cannot express (see §4).
 
-### 1.4 Final readout and logical observable — `data_readout_and_observable`
+### 1.4 Final readout and logical observable — `data_readout` + `define_observable`
+
+`Base` provides two single-responsibility primitives; there is **no composite method**. Each `build()`
+composes them explicitly (and the noisy models slot `final_boundary_detectors` in between):
 
 ```python
+# data_readout(): final perfect readout, returns coord -> absolute measurement index
 self.deform_x_basis_data()                 # return to the same basis as preparation
 self.circuit.append("M", data_list)        # measure all data in Z (effectively the X-memory readout)
-# record coord -> absolute measurement number
-self.final_boundary_detectors(data_record) # hook (see below)
+# ... record coord -> absolute measurement number, return it
+
+# define_observable(data_record): the logical-X observable
 observable_targets = [self.rel(data_record[dc]) for dc in self.code.logical_x]
 self.circuit.append("OBSERVABLE_INCLUDE", observable_targets, 0)
+```
+
+A `build()` therefore ends with:
+
+```python
+data_record = self.data_readout()
+self.final_boundary_detectors(data_record)   # noisy models only — omitted by code capacity
+self.define_observable(data_record)
 ```
 
 - The logical-X observable is defined by the parity of the final measurements of the data qubits listed
   in `code.logical_x`.
 - `final_boundary_detectors` adds **time-boundary detectors** that cross-check "the stabilizer
-  reconstructed from the final data readout" against "the last round's syndrome." The logic is
-  model-independent, so it lives in `BaseCircuitBuilder` and is **shared by phenomenological and
-  circuit-level**. Code capacity, whose final readout is noiseless, **overrides it as a no-op** to opt
-  out — there the detectors would only be redundant (see §2).
+  reconstructed from the final data readout" against "the last round's syndrome." It lives **only** in
+  `NoisyMeasurementCircuitBuilder` (so it is **shared by phenomenological and circuit-level**) and `Base`
+  knows nothing about it. The two noisy models call it explicitly in their `build()`; code capacity, whose
+  final readout is noiseless, simply omits the call — those detectors would only be redundant (see §2).
 
 
 ## 2. Code Capacity Model
@@ -160,7 +181,7 @@ TICK
 PAULI_CHANNEL_1(data, [px,py,pz])  ▶ the only noise: one biased Pauli channel on data
 syndrome_meas()                    round 1: perfect measurement
 DETECTOR(round1 vs round0) × all ancillas
-data_readout_and_observable()      perfect readout + logical X
+data_readout(); define_observable() perfect readout + logical X (no boundary detectors)
 ```
 
 ### Why it looks like this
@@ -174,8 +195,9 @@ perfect.** Therefore:
 - There is effectively a single round: "reference → noise → measurement."
 - **No time-boundary detectors.** Because measurement is error-free, round 1's syndrome already
   represents the final state completely and is consistent with the final readout (the detectors would only
-  be redundant). Code capacity therefore **overrides `final_boundary_detectors` as a no-op**, opting out
-  of the base implementation that the two noisy-measurement models share.
+  be redundant). Code capacity's `build()` therefore calls just `data_readout` + `define_observable` and
+  **omits the `final_boundary_detectors` call** — that logic exists only in `NoisyMeasurementCircuitBuilder`,
+  which code capacity does not extend.
 
 The detectors compare round 1 against round 0 because (as in §0) we look at the difference of a syndrome
 that should be unchanged in the absence of noise. Since round 0 establishes a perfect baseline, the
@@ -197,7 +219,9 @@ for _ in range(rounds):                 ▶ multiple rounds (default: code dista
     syndrome_meas(flip=p_meas)          ▶ with measurement flip
     DETECTOR(round_t vs round_{t-1}) × all ancillas
     TICK
-data_readout_and_observable()           perfect readout + time-boundary detectors + logical X
+data_readout()                          perfect readout
+final_boundary_detectors()              time-boundary detectors
+define_observable()                     logical X
 ```
 
 ### Why it looks like this
@@ -219,11 +243,12 @@ be trusted:
   "detector that fires in two consecutive rounds" (a time-like edge), while a data error shows up as a
   space-like edge ⇒ both are correctable by matching.
 
-### Time-boundary detectors (`final_boundary_detectors`, defined in `Base`)
+### Time-boundary detectors (`final_boundary_detectors`, defined in `NoisyMeasurementCircuitBuilder`)
 
 Immediately after the last round, we "close" the noisy measurements using the **perfect data readout**.
-This logic is model-independent, so it lives in `BaseCircuitBuilder` and is shared verbatim with
-circuit-level (§4):
+This logic is common to both noisy-measurement models, so it lives in the intermediate
+`NoisyMeasurementCircuitBuilder`; each model calls it explicitly in its `build()`, between `data_readout`
+and `define_observable` (shared verbatim with circuit-level, §4):
 
 ```python
 prep_basis = {q: ("Z" if q in hset else "X") for q in data_qubits}   # each data qubit's prep/meas basis
@@ -241,19 +266,21 @@ type of every one of its legs matches that qubit's measurement basis (`prep_basi
 constraint that you can only read X-type legs off data measured in the X basis. We rebuild exactly those
 checks from the final data readout and compare them against the last round's syndrome, so that
 **errors occurring near the final round can also be detected**, closing the time boundary.
-(Code capacity overrides this method as a no-op to skip these detectors, for the reason in §2.)
+(Code capacity does not extend this class and simply omits the call in its `build()`, skipping these
+detectors — see §2.)
 
 
 ## 4. Circuit-Level Model
 
 [circuit_level.py](./circuit_level.py)
 
-### Structure (self-contained, extends `Base` only)
+### Structure (owns its model-specific parts, extends `NoisyMeasurementCircuitBuilder`)
 
-`CircuitLevelCircuitBuilder` extends `BaseCircuitBuilder` directly and is **self-contained**: it owns its
-`__init__`, `build`, and `syndrome_meas`, reusing the model-independent plumbing from `Base` (`rel`,
-`deform_x_basis_data`, `init_qubit_coords`, `data_readout_and_observable`, and `final_boundary_detectors`).
-It does **not** inherit from `PhenomenologicalCircuitBuilder` (see §0 for why).
+`CircuitLevelCircuitBuilder` extends `NoisyMeasurementCircuitBuilder` and owns its **model-specific** parts
+— `build` and `syndrome_meas` — while *inheriting* the constructor `__init__(rounds, p_meas)` and the
+time-boundary `final_boundary_detectors` from that intermediate class, plus the model-independent plumbing
+from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, and the `data_readout` / `define_observable`
+final-readout primitives). It does **not** inherit from `PhenomenologicalCircuitBuilder` (see §0 for why).
 
 Its `build` mirrors phenomenological's round/detector loop — round 0 reference, then `rounds` noisy
 rounds each emitting a consecutive-round detector, then a perfect final readout — with **one difference**:
@@ -328,10 +355,11 @@ appear as one combined channel — but that is purely cosmetic.)
 - `noisy = self.current_round > 0` keeps **only round 0 perfect** (the reference round gets no reset,
   gate, or idle noise). This decision does not depend on the value of `flip`, so it stays correct even
   for edge cases like `p_meas=0`.
-- The final data readout stays perfect (via `Base.data_readout_and_observable`). The time-boundary
-  detectors come from `Base.final_boundary_detectors` — the same prep-basis reconstruction described in
-  §3. Because the logic is model-independent, phenomenological and circuit-level **share the one base
-  implementation** rather than each carrying a copy.
+- The final data readout stays perfect (via `Base.data_readout` + `Base.define_observable`, composed
+  directly in `build`). Between them, `build` calls the time-boundary `final_boundary_detectors` from
+  `NoisyMeasurementCircuitBuilder` — the same prep-basis reconstruction described in §3. Because the logic
+  is common to both noisy-measurement models, phenomenological and circuit-level **call that one
+  intermediate-class implementation** rather than each carrying a copy.
 
 
 
@@ -346,7 +374,7 @@ appear as one combined channel — but that is purely cosmetic.)
 | Gate noise | none | none | yes (per 2q gate) |
 | Rounds | effectively 1 | `rounds` (default d) | `rounds` (default d) |
 | Time-boundary detectors | none | yes | yes |
-| Inherits from | `BaseCircuitBuilder` | `BaseCircuitBuilder` | `BaseCircuitBuilder` |
+| Inherits from | `BaseCircuitBuilder` | `NoisyMeasurementCircuitBuilder` | `NoisyMeasurementCircuitBuilder` |
 
 All of them share the skeleton: **X memory**, **round 0 as a perfect reference**,
 **consecutive-round comparison detectors**, and **Z-biased noise via `biased_pauli_rates(p, eta)`**.

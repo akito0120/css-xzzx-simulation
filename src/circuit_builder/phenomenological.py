@@ -1,20 +1,10 @@
 import stim
-from typing import Optional
-from code_builder import QecCode
-from .shared import BaseCircuitBuilder, biased_pauli_rates
+from .noisy_measurement import NoisyMeasurementCircuitBuilder
+from .shared import biased_pauli_rates
 
-class PhenomenologicalCircuitBuilder(BaseCircuitBuilder):
-    # Noise model: phenomenological (per-round data noise + measurement flips)
+class PhenomenologicalCircuitBuilder(NoisyMeasurementCircuitBuilder):
+    # Noise model: phenomenological
     # Memory basis: X
-
-    rounds: int
-    p_meas: float
-
-    def __init__(self, code: QecCode, p: float, eta: float,
-                 rounds: Optional[int] = None, p_meas: Optional[float] = None):
-        super().__init__(code, p, eta)
-        self.rounds = code.distance if rounds is None else rounds
-        self.p_meas = p if p_meas is None else p_meas
 
     def data_round_noise(self):
         # Per-round bulk data noise (the phenomenological data error).
@@ -55,6 +45,8 @@ class PhenomenologicalCircuitBuilder(BaseCircuitBuilder):
             self.circuit.append("TICK")
 
         # Final perfect data readout, time-boundary detectors and logical observable
-        self.data_readout_and_observable()
+        data_record = self.data_readout()
+        self.final_boundary_detectors(data_record)
+        self.define_observable(data_record)
 
         return self.circuit

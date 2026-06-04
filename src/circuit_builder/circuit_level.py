@@ -1,24 +1,10 @@
 import stim
-from typing import Optional
-from code_builder import QecCode
-from .shared import BaseCircuitBuilder, biased_pauli_rates, CGATE
+from .noisy_measurement import NoisyMeasurementCircuitBuilder
+from .shared import biased_pauli_rates, CGATE
 
-class CircuitLevelCircuitBuilder(BaseCircuitBuilder):
+class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
     # Noise model: circuit-level
     # Memory basis: X
-
-    # Self-contained on purpose: it owns build / __init__ / time-boundary detectors
-    # and only reuses the model-independent plumbing from BaseCircuitBuilder
-    # (rel, deform_x_basis_data, init_qubit_coords, data_readout_and_observable).
-
-    rounds: int
-    p_meas: float
-
-    def __init__(self, code: QecCode, p: float, eta: float,
-                 rounds: Optional[int] = None, p_meas: Optional[float] = None):
-        super().__init__(code, p, eta)
-        self.rounds = code.distance if rounds is None else rounds
-        self.p_meas = p if p_meas is None else p_meas
 
     def syndrome_meas(self, flip: float = 0.0):
         # current_round == 0 is the perfect reference round; everything later is noisy.
@@ -89,6 +75,8 @@ class CircuitLevelCircuitBuilder(BaseCircuitBuilder):
             self.circuit.append("TICK")
 
         # Final perfect data readout, time-boundary detectors and logical observable
-        self.data_readout_and_observable()
+        data_record = self.data_readout()
+        self.final_boundary_detectors(data_record)
+        self.define_observable(data_record)
 
         return self.circuit
