@@ -1,9 +1,16 @@
 import stim
+from typing import Dict
+from code_builder import Coord
 from .shared import BaseCircuitBuilder, biased_pauli_rates
 
 class CodeCapacityCircuitBuilder(BaseCircuitBuilder):
     # Noise model: code capacity (single noisy data round, perfect measurements)
     # Memory basis: X
+
+    def final_boundary_detectors(self, data_record: Dict[Coord, int]):
+        # No final-round detectors: the readout is noiseless, so the round-1
+        # syndrome already captures every data error. Opt out of the base impl.
+        pass
 
     def build(self) -> stim.Circuit:
         self.circuit = stim.Circuit()
@@ -37,9 +44,7 @@ class CodeCapacityCircuitBuilder(BaseCircuitBuilder):
                 [ancilla[0], ancilla[1], self.current_round],
             )
 
-        # Data readout + logical observable
-        # No final-round detectors: measurements here are noiseless, so the
-        # round-1 syndrome already captures every data error.
+        # Data readout + logical observable (no final-round detectors; see above)
         self.data_readout_and_observable()
 
         return self.circuit

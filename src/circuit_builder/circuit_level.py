@@ -1,6 +1,6 @@
 import stim
-from typing import Dict, List, Optional
-from code_builder import QecCode, Coord
+from typing import Optional
+from code_builder import QecCode
 from .shared import BaseCircuitBuilder, biased_pauli_rates, CGATE
 
 class CircuitLevelCircuitBuilder(BaseCircuitBuilder):
@@ -55,30 +55,6 @@ class CircuitLevelCircuitBuilder(BaseCircuitBuilder):
                 self.circuit.append("MX", [ancilla_idx])
             self.ancilla_record[(ancilla, self.current_round)] = self.record_counter
             self.record_counter += 1
-
-    def final_boundary_detectors(self, data_record: Dict[Coord, int]):
-        # Per-qubit preparation/measurement basis for X-memory
-        # |+> (basis X) off hset, |0> (basis Z) on hset
-        prep_basis: Dict[Coord, str] = {
-            q: ("Z" if q in self.code.hset else "X") for q in self.code.data_qubits
-        }
-
-        # "eligible" stabilizers = checks deterministic under that preparation
-        # Every leg matches the prep basis
-        # Checks reconstructable from the final data readout
-        eligible: List[Coord] = [
-            anc for anc, legs in self.code.stabilizers.items()
-            if all(pauli == prep_basis[q] for q, pauli in legs.items())
-        ]
-
-        # Close the time boundary: reconstructed check vs. last round
-        last = self.current_round
-        for ancilla in eligible:
-            targets = [self.rel(data_record[dc])
-                       for dc in self.code.stabilizers[ancilla]]
-            targets.append(self.rel(self.ancilla_record[(ancilla, last)]))
-            self.circuit.append("DETECTOR", targets,
-                                [ancilla[0], ancilla[1], last + 1])
 
     def build(self) -> stim.Circuit:
         self.circuit = stim.Circuit()

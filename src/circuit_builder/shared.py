@@ -77,8 +77,31 @@ class BaseCircuitBuilder:
 
     def final_boundary_detectors(self, data_record: Dict[Coord, int]):
         # Close the time boundary by reconstructing checks from the final data readout.
-        # No-op by default; overridden where measurement is noisy (phenomenological, circuit-level).
-        pass
+        # Used wherever the bulk rounds have noisy measurement (phenomenological, circuit-level).
+        # Overridden as a no-op in code capacity, where the final readout is noiseless.
+
+        # Per-qubit preparation/measurement basis for X-memory
+        # |+> (basis X) off hset, |0> (basis Z) on hset
+        prep_basis: Dict[Coord, str] = {
+            q: ("Z" if q in self.code.hset else "X") for q in self.code.data_qubits
+        }
+
+        # "eligible" stabilizers = checks deterministic under that preparation
+        # Every leg matches the prep basis
+        # Checks reconstructable from the final data readout
+        eligible: List[Coord] = [
+            anc for anc, legs in self.code.stabilizers.items()
+            if all(pauli == prep_basis[q] for q, pauli in legs.items())
+        ]
+
+        # Close the time boundary: reconstructed check vs. last round
+        last = self.current_round
+        for ancilla in eligible:
+            targets = [self.rel(data_record[dc])
+                       for dc in self.code.stabilizers[ancilla]]
+            targets.append(self.rel(self.ancilla_record[(ancilla, last)]))
+            self.circuit.append("DETECTOR", targets,
+                                [ancilla[0], ancilla[1], last + 1])
 
     def data_readout_and_observable(self) -> Dict[Coord, int]:
         # Final perfect data readout in the X-memory basis, then the logical-X observable.
