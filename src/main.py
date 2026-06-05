@@ -7,7 +7,7 @@ from typing import Dict, List
 from rich.progress import Progress, BarColumn, TextColumn
 
 from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
-from circuit_builder import CodeCapacityCircuitBuilder, PhenomenologicalCircuitBuilder
+from circuit_builder import CodeCapacityCircuitBuilder, CircuitLevelCircuitBuilder
 from simulation import estimate_logical_error_rate
 from threshold import SamplePoint, estimate_threshold
 
@@ -19,10 +19,10 @@ if __name__ == "__main__":
     ap.add_argument("--diagramonly", action="store_true", default=False)
     args = ap.parse_args()
 
-    etas = [3]
+    etas = [0.5, 3, 10, 30, 100, float("inf")]
     code_types = ["css", "xzzx"]
-    distances = [3, 5, 7]
-    physical_error_rates = ps = list(np.linspace(0.01, 0.20, 12))
+    distances = [3, 5, 7, 9]
+    physical_error_rates = ps = list(np.linspace(0.001, 0.015, 16))
 
     os.makedirs(f"{args.outdir}", exist_ok=True)
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                         for physicall_error_rate in physical_error_rates:
 
                             code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
-                            circuit = PhenomenologicalCircuitBuilder(code, physicall_error_rate, eta).build()
+                            circuit = CircuitLevelCircuitBuilder(code, physicall_error_rate, eta).build()
                             p_L, sigma = estimate_logical_error_rate(circuit, shots=int(args.shots))
 
                             result.append(p_L)
