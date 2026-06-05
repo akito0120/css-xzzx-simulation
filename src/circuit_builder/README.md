@@ -340,10 +340,8 @@ def syndrome_meas(self, flip=0.0):
             pauli = self.code.stabilizers[ancilla][dcoord]
             self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
             if noisy:
-                if pauli == "Z":                # CZ: bias-preserving -> biased correlated channel
-                    self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)  # (2) 2q gate error
-                else:                           # CX: not bias-preserving -> plain depolarizing
-                    self.circuit.append("DEPOLARIZE2", [ancilla_idx, data_idx], self.p)
+                # (2) 2q gate error: same biased correlated channel for both CX and CZ
+                self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)
             busy |= {ancilla_idx, data_idx}
         if noisy:
             idle = [q for q in all_qubits if q not in busy]   # (3c) per-step idle: whoever rests this step
@@ -372,7 +370,7 @@ $\ket{+}$ preparation), and the two-qubit gate uses a **biased correlated two-qu
 | Location | Implementation | Intent |
 |---|---|---|
 | (1) reset error | `Z_ERROR(p)` on ancillas after `RX` | imperfection of the prepared $\ket{+}$: a $Z$ flip sends $\ket{+}\to\ket{-}$. A full Pauli channel would be wasteful here since $X\ket{+}=\ket{+}$ |
-| (2) 2q gate error | after **CZ**: `PAULI_CHANNEL_2` (biased correlated 2-qubit channel); after **CX**: `DEPOLARIZE2(p)` (each Pauli $p/15$) | imperfection of the entangling gate — CZ is bias-preserving, CX is not (HBD hybrid) |
+| (2) 2q gate error | after **both CZ and CX**: `PAULI_CHANNEL_2` (the same biased correlated 2-qubit channel) | imperfection of the entangling gate — uniformly Z-biased, assuming bias-preserving gates (biased SD6) |
 | (3a) idle error (reset window) | `PAULI_CHANNEL_1` on **all data** right after the ancillas are reset | data decoheres while it waits for the ancillas to be reset |
 | (3b) idle error (measure window) | `PAULI_CHANNEL_1` on **all data** right before the ancillas are measured | data decoheres while it waits for the ancillas to be measured |
 | (3c) idle error (per CNOT step) | `PAULI_CHANNEL_1` on the qubits **not gated** in that step (boundary data + resting ancillas) | data/ancillas decohere while they sit out a gate step they have no leg in |
@@ -381,8 +379,8 @@ $\ket{+}$ preparation), and the two-qubit gate uses a **biased correlated two-qu
 The two-qubit gate error is a genuine **correlated** channel (each gate fault produces a weight-2 error at
 $O(p)$, as in standard circuit-level models), built by `biased_two_qubit_rates` in
 [shared.py](./shared.py) next to `biased_pauli_rates`. It follows the **bias-preserving-gate** convention of
-the XZZX biased-noise literature (Darmawan *et al.*, [arXiv:2104.09539](https://arxiv.org/abs/2104.09539);
-HBD model, [arXiv:2505.17718](https://arxiv.org/abs/2505.17718)): the 15 non-identity two-qubit Paulis are
+the XZZX biased-noise literature (Darmawan *et al.*, [arXiv:2104.09539](https://arxiv.org/abs/2104.09539),
+XZZX + Kerr-cat qubits): the 15 non-identity two-qubit Paulis are
 **partitioned** into a high-rate Z-subgroup $H=\{IZ, ZI, ZZ\}$ and the 12 remaining low-rate errors, with
 bias $\eta = P(H)/P(L)$ — exactly the two-qubit generalization of the single-qubit convention
 $\eta = p_Z/(p_X+p_Y)$ (high-rate $\{Z\}$ vs low-rate $\{X,Y\}$). Probabilities are uniform within each set
@@ -394,14 +392,18 @@ single-qubit $1$-vs-$2$ split, which makes $\eta=1/2$ depolarizing); prior resea
 high/low probability ratio rather than anchoring on a depolarizing point. The distribution is symmetric in
 the two qubits, so the control/target order is irrelevant.
 
-Following the **HBD hybrid** model (arXiv:2505.17718), this biased channel is applied **only after CZ gates**,
-which can be realized in a bias-preserving way. The X-type checks use **CX gates, which are *not*
-bias-preserving on two-level qubits** (no-go theorem), so they instead get plain **two-qubit depolarizing**
-(`DEPOLARIZE2(p)`, each of the 15 Paulis at $p/15$, independent of $\eta$). These codes only ever emit CX and
-CZ (stabilizers are X/Z only), so CY never arises; were it to, it would be treated as non-bias-preserving
-(depolarizing). Because the CX gates reintroduce $X/Y$ noise regardless of bias, circuit-level thresholds are
-lower than they would be under an idealized all-bias-preserving model. (Building the decoder DEM from
-`PAULI_CHANNEL_2` requires `approximate_disjoint_errors=True`, which [simulation.py](../simulation.py) passes.)
+This is a **uniform biased SD6** model: the same biased channel is applied after **both** the CZ (Z-type
+checks) and CX (X-type checks) gates, i.e. **all** two-qubit gates are assumed **bias-preserving**. This is
+physically the **bias-preserving-hardware** regime (e.g. cat qubits, where the CX can be made
+bias-preserving), *not* a generic two-level-qubit device — on two-level qubits a no-go theorem forbids a
+bias-preserving CNOT, so a faithful transmon model would instead give the CX plain depolarizing noise (the
+"HBD hybrid" of [arXiv:2505.17718](https://arxiv.org/abs/2505.17718)). The choice matters: under the uniform
+biasing here, XZZX's advantage **keeps growing with $\eta$**, whereas an unbiased/depolarizing CX would
+reintroduce $X/Y$ noise every round and **cap** the advantage (the threshold would saturate around $\sim1\%$
+as $\eta\to\infty$). To switch back to the hybrid, branch on the leg's Pauli and emit `DEPOLARIZE2(p)` for the
+CX legs instead. These codes only ever emit CX and CZ (stabilizers are X/Z only), so CY never arises.
+(Building the decoder DEM from `PAULI_CHANNEL_2` requires `approximate_disjoint_errors=True`, which
+[simulation.py](../simulation.py) passes.)
 
 **Why idle noise replaces the bulk channel.**
 In a real device the data qubits are not actually idle during a round: they are repeatedly entangled by

@@ -82,15 +82,16 @@ $\eta = 0.5$ is standard depolarizing noise; $\eta \rightarrow \infty$ is pure d
 `biased_pauli_rates(p, eta)` in [circuit_builder/shared.py](./src/circuit_builder/shared.py)
 (the $\eta = \infty$ case returns the pure-Z channel $(0, 0, p)$).
 
-The circuit-level model follows the **HBD hybrid** convention of the XZZX biased-noise literature
-(Darmawan *et al.*, [arXiv:2104.09539](https://arxiv.org/abs/2104.09539); HBD model,
-[arXiv:2505.17718](https://arxiv.org/abs/2505.17718)). The **bias-preserving CZ gates** get a biased
-two-qubit channel using the **same high/low partition** as the single-qubit case: the 15 two-qubit Paulis
-split into a high-rate Z-subgroup $\{IZ, ZI, ZZ\}$ and 12 low-rate errors, with bias
+The circuit-level model is a **biased SD6** model: the standard depolarizing SD6 circuit model (single
+parameter $p$, every operation noisy) with each channel made **Z-biased** by the factor $\eta$. It assumes
+**bias-preserving two-qubit gates** (as realizable on e.g. cat qubits — Darmawan *et al.*,
+[arXiv:2104.09539](https://arxiv.org/abs/2104.09539)), so **both** the CZ (Z-type checks) and CX (X-type
+checks) gates get the **same biased correlated two-qubit channel**: the 15 two-qubit Paulis split into a
+high-rate Z-subgroup $\{IZ, ZI, ZZ\}$ and 12 low-rate errors, with bias
 $\eta = P(\{IZ,ZI,ZZ\})/P(\text{rest})$, generalizing the single-qubit $\eta = p_Z/(p_X+p_Y)$; as
 $\eta\to\infty$ it concentrates uniformly on $\{IZ, ZI, ZZ\}$ (implemented by `biased_two_qubit_rates(p, eta)`).
-The **CX gates are not bias-preserving** on two-level qubits, so they instead get plain **two-qubit
-depolarizing** (`DEPOLARIZE2(p)`, each Pauli $p/15$, independent of $\eta$). See
+This uniform biasing is what lets XZZX's advantage keep growing with $\eta$ (rather than saturating, as it
+would under an unbiased/depolarizing CX on two-level qubits). See
 [circuit_builder/README.md](./src/circuit_builder/README.md) for the full convention and limits.
 
 ### Noise models

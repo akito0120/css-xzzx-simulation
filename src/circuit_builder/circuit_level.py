@@ -3,7 +3,7 @@ from .noisy_measurement import NoisyMeasurementCircuitBuilder
 from .shared import biased_pauli_rates, biased_two_qubit_rates, build_cnot_schedule, CGATE
 
 class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
-    # Noise model: circuit-level
+    # Noise model: circuit-level (biased-SD6)
     # Memory basis: X
 
     def syndrome_meas(self, flip: float = 0.0):
@@ -37,13 +37,8 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
                 pauli = self.code.stabilizers[ancilla][dcoord]
                 self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
                 if noisy:
-                    # Two-qubit gate error (HBD model)
-                    if pauli == "Z":
-                        # CZ is bias-preserving -> biased correlated 2-qubit Pauli channel
-                        self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)
-                    else:
-                        # CX is not bias-preserving on two-level qubits -> plain two-qubit depolarizing
-                        self.circuit.append("DEPOLARIZE2", [ancilla_idx, data_idx], self.p)
+                    # Two-qubit gate error (biased SD6)
+                    self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)
                 busy_qubits.add(ancilla_idx)
                 busy_qubits.add(data_idx)
             if noisy:
