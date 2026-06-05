@@ -59,7 +59,7 @@ The "why" shared by all three models:
 | Design choice | Reason |
 |---|---|
 | **X-memory basis** | The goal is to show XZZX's advantage under Z-biased noise. We hold a logical X and read out in the X basis at the end |
-| **Round 0 is perfect (noiseless)** | To make the detector "reference point" deterministic. It projects the syndrome into the code space |
+| **Round 0 is perfect (noiseless)** | To make the detector "reference point" deterministic. It projects the syndrome into the code space. (Code-capacity / phenomenological only; **circuit-level instead uses a noisy round 0 + `initial_boundary_detectors`** — see §4) |
 | **Detector = comparison of consecutive rounds' syndromes** | If nothing happened, the syndrome is unchanged. A change = an error occurred in between — a difference detector |
 | **Single ancilla + controlled-Pauli** | Prepare one ancilla in $\ket{+}$, apply controlled Paulis to the data, and measure it in X — this measures any Pauli stabilizer |
 
@@ -301,29 +301,45 @@ from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, `consecutive_rou
 `data_readout` / `define_observable` final-readout primitives). It does **not** inherit from
 `PhenomenologicalCircuitBuilder` (see §0 for why).
 
-Its `build` mirrors phenomenological's round/detector loop — round 0 reference, then `rounds` noisy
-rounds each emitting a consecutive-round detector, then a final data readout **carrying a readout error**
-(`data_readout(flip=p_meas)`, unlike phenomenological's perfect readout) — with **one difference**:
-there is **no bulk per-round data channel**. Circuit-level's data noise comes entirely from the **actual
+Its `build` mirrors phenomenological's round/detector loop — but with **both time boundaries noisy**: a
+noisy round 0 closed by `initial_boundary_detectors` (instead of a perfect reference round), then the
+remaining noisy rounds each emitting a consecutive-round detector, then a final data readout **carrying a
+readout error** (`data_readout(flip=p_meas)`, unlike phenomenological's perfect readout) — and with the
+usual **one difference**: there is **no bulk per-round data channel**. Circuit-level's data noise comes entirely from the **actual
 operations** inside `syndrome_meas`: reset error, two-qubit gate error, and **idle noise during the reset
 window, the measurement window, and each of the 4 parallel CNOT steps** (on whichever qubits rest that step).
 
 ```python
-# circuit-level build's noisy round — no bulk data channel, just syndrome_meas:
-for _ in range(self.rounds):
+# circuit-level build: noisy bottom boundary (no perfect round 0), no bulk data channel
+self.circuit.append("R", data_list)
+self.circuit.append("X_ERROR", data_list, self.p)   # SD6 reset error on |0> (-> per-basis prep error after H)
+self.deform_x_basis_data()
+self.syndrome_meas()                 # round 0 is the first *noisy* round
+self.initial_boundary_detectors()                    # deterministic-basis checks vs known +1 (bottom boundary)
+for _ in range(self.rounds - 1):                     # remaining rounds; total = self.rounds
     self.current_round += 1
-    self.syndrome_meas(flip=self.p_meas)   # reset + gate + idle + measurement noise live here
+    self.syndrome_meas()             # reset + gate + idle + measurement noise live here
     ... emit consecutive-round detectors ...
 ```
 
 If `build` *also* applied a phenomenological bulk channel here, it would fire alongside the idle channels
 each round and **double-count** the data decoherence — so it deliberately omits it.
 
+Unlike phenomenological, circuit-level has **no perfect reference round**: round 0 is itself noisy, and the
+bottom time boundary is closed by `initial_boundary_detectors` — the mirror image of
+`final_boundary_detectors` (§3). The deterministic-basis checks (the same `eligible` set, here the X-type
+checks for X-memory) have a known $+1$ eigenvalue in round 0, so a single-measurement detector on their
+round-0 syndrome catches the reset error (`X_ERROR(p)` after `R`, which the `H` deformation turns into the
+per-basis prep error) and any round-0 measurement error. Naively adding reset noise *before* a perfect
+round 0 would instead make it **undetectable** (absorbed into the reference, flipping only the observable)
+and collapse the effective distance to $\sim1$ — which is why the perfect round 0 is removed here.
+
 ### The overridden `syndrome_meas`
 
 ```python
-def syndrome_meas(self, flip=0.0):
-    noisy = self.current_round > 0          # round 0 is the perfect reference
+def syndrome_meas(self):
+    # every round (round 0 included) is noisy; all rates read from self (no flip arg);
+    # the bottom boundary is closed by initial_boundary_detectors
     px, py, pz = biased_pauli_rates(self.p, self.eta)
     pc2 = biased_two_qubit_rates(self.p, self.eta)   # 15 probs for PAULI_CHANNEL_2
 
@@ -354,7 +370,7 @@ def syndrome_meas(self, flip=0.0):
         self.circuit.append("PAULI_CHANNEL_1", data_list, [px,py,pz])         # (3b) idle: data waits during measure
 
     for ancilla in ...:
-        self.circuit.append("MX", [ancilla_idx], flip)   # (4) measurement flip
+        self.circuit.append("MX", [ancilla_idx], self.p_meas)   # (4) measurement flip
         ...
 ```
 
@@ -440,9 +456,10 @@ A single common order works here because the experiment measures **only the logi
 two-sided memory (X *and* Z) would need the standard X/Z-transposed schedule instead (noted in the
 [shared.py](./shared.py) comment).
 
-- `noisy = self.current_round > 0` keeps **only round 0 perfect** (the reference round gets no reset,
-  gate, or idle noise). This decision does not depend on the value of `flip`, so it stays correct even
-  for edge cases like `p_meas=0`.
+- **Every round, including round 0, is noisy** — `syndrome_meas` injects its noise unconditionally (there is
+  no `noisy` flag / perfect-reference branch any more). The bottom boundary is instead closed by
+  `initial_boundary_detectors` together with the `X_ERROR(p)` reset error, so reset / round-0 faults are
+  detectable (see above). This keeps both time boundaries faithful.
 - The final data readout **carries a readout error** at rate `p_meas` (via `Base.data_readout(flip=p_meas)`
   + `Base.define_observable`, composed directly in `build`) — so the upper time boundary is noisy too, like
   a standard circuit-level memory experiment. The `final_boundary_detectors` pick these readout flips up as
@@ -467,8 +484,10 @@ two-sided memory (X *and* Z) would need the standard X/Z-transposed schedule ins
 | Time-boundary detectors | none | yes | yes |
 | Inherits from | `BaseCircuitBuilder` | `NoisyMeasurementCircuitBuilder` | `NoisyMeasurementCircuitBuilder` |
 
-All of them share the skeleton: **X memory**, **round 0 as a perfect reference**,
-**consecutive-round comparison detectors**, and **Z-biased noise via `biased_pauli_rates(p, eta)`**.
+All of them share the skeleton: **X memory**, **consecutive-round comparison detectors**, and
+**Z-biased noise via `biased_pauli_rates(p, eta)`**. Code-capacity and phenomenological use a **perfect
+reference round 0**; circuit-level instead makes **both boundaries noisy** (noisy round 0 +
+`initial_boundary_detectors`, noisy final readout), the faithful circuit-level convention.
 
 ### On the meaning of `p` across models (important)
 

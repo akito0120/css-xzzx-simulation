@@ -22,7 +22,7 @@ if __name__ == "__main__":
     etas = [0.5, 3, 10, 30, 100, float("inf")]
     code_types = ["css", "xzzx"]
     distances = [3, 5, 7, 9]
-    physical_error_rates = ps = list(np.linspace(0.001, 0.015, 16))
+    physical_error_rates = ps = list(np.linspace(0.001, 0.02, 16))
 
     os.makedirs(f"{args.outdir}", exist_ok=True)
 

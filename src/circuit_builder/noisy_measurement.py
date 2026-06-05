@@ -16,6 +16,20 @@ class NoisyMeasurementCircuitBuilder(BaseCircuitBuilder):
         self.rounds = code.distance if rounds is None else rounds
         self.p_meas = p if p_meas is None else p_meas
 
+    def initial_boundary_detectors(self):
+        # Mirror of final_boundary_detectors at the bottom time boundary
+        # Use if data prep is noisy
+        prep_basis: Dict[Coord, str] = {
+            q: ("Z" if q in self.code.hset else "X") for q in self.code.data_qubits
+        }
+        eligible: List[Coord] = [
+            anc for anc, legs in self.code.stabilizers.items()
+            if all(pauli == prep_basis[q] for q, pauli in legs.items())
+        ]
+        for ancilla in eligible:
+            d0 = self.ancilla_record[(ancilla, 0)]
+            self.circuit.append("DETECTOR", [self.rel(d0)], [ancilla[0], ancilla[1], 0])
+
     def final_boundary_detectors(self, data_record: Dict[Coord, int]):
         # Per-qubit preparation/measurement basis for X-memory
         # |+> (basis X) off hset, |0> (basis Z) on hset

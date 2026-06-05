@@ -122,8 +122,11 @@ uniform X basis.
 A single uniform gadget works for any X/Z/Y leg mix: the ancilla is prepared in $\ket{+}$,
 a controlled-P (CX/CY/CZ, ancilla as control) is applied for each leg, and the ancilla is
 measured in the X basis (phase kickback). The same code path therefore serves both the CSS
-and the XZZX checks. Detectors compare each round to the previous one, with a perfect
-reference round 0 so that every detector is deterministic regardless of check type.
+and the XZZX checks. Detectors compare each round to the previous one. Code-capacity and
+phenomenological use a perfect reference round 0 to make the detectors deterministic; the
+**circuit-level** model instead keeps round 0 noisy and closes both time boundaries with
+explicit boundary detectors (initial + final) plus a reset and readout error, for a faithful
+all-operations-noisy circuit (see [circuit_builder/README.md](./src/circuit_builder/README.md) §4).
 
 For the **circuit-level** model the per-leg controlled gates are not applied ancilla-by-ancilla
 but scheduled into **4 parallel time steps** (`build_cnot_schedule` in
