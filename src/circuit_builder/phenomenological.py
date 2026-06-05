@@ -16,13 +16,9 @@ class PhenomenologicalCircuitBuilder(NoisyMeasurementCircuitBuilder):
         self.circuit = stim.Circuit()
         self.ancilla_order = list(self.code.stabilizers.keys())
 
-        data_list = list(self.code.data_qubits.values())
-
+        # Initialize qubits in their memory basis
         self.init_qubit_coords()
-
-        # Prepare |+> / |0>
-        self.circuit.append("R", data_list)
-        self.deform_x_basis_data()
+        self.prep_data()
 
         # Round 0: perfect reference (projects into the code space)
         self.syndrome_meas()

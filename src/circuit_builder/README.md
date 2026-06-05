@@ -23,7 +23,7 @@ abstract base. Code capacity extends `BaseCircuitBuilder` directly; the two nois
 
 ```
 BaseCircuitBuilder                       # model-independent plumbing:
-│                                          rel, deform, qubit init, syndrome_meas (code-cap/pheno only),
+│                                          rel, prep_data, qubit init, syndrome_meas (code-cap/pheno only),
 │                                          consecutive_round_detectors,
 │                                          data_readout + define_observable (final-readout primitives)
 ├── CodeCapacityCircuitBuilder           # data noise once, perfect measurements
@@ -85,25 +85,27 @@ def rel(self, abs_idx: int) -> stim.GateTarget:
 negative and yields the correct relative offset at that moment. The key is to call `rel`
 **at the exact point where the detector is appended**.
 
-### 1.2 Basis deformation (Hadamard) — `deform_x_basis_data`
+### 1.2 Per-basis preparation — `prep_data` (and `data_basis_partition`)
+
+Each data qubit is prepared **directly in its memory basis** (no Hadamard deformation), matching the
+standard surface-code circuit convention (cf. Stim's generated circuits):
 
 ```python
-x_basis_data_list = [idx for coord, idx in self.code.data_qubits.items()
-                     if coord not in self.code.hset]
-self.circuit.append("H", x_basis_data_list)
+x_basis, z_basis = self.data_basis_partition()   # split data qubits by memory basis
+self.circuit.append("RX", [idx for _, idx in x_basis])   # |+> off hset (X basis)
+self.circuit.append("R",  [idx for _, idx in z_basis])   # |0> on hset (Z basis)
 ```
 
-- **CSS code**: `hset` is empty. H is applied to every data qubit, preparing them all in $\ket{+}$ (pure X memory).
-- **XZZX code**: the qubits in `hset` (a checkerboard subset of data qubits, see `build_xzzx_code` in
-  [code_builder.py](../code_builder.py)) are **not** given an H → they stay in
-  $\ket{0}$ (the Z basis).
+- **CSS code**: `hset` is empty → every data qubit is reset with `RX` into $\ket{+}$ (pure X memory).
+- **XZZX code**: the qubits in `hset` (a checkerboard subset, see `build_xzzx_code` in
+  [code_builder.py](../code_builder.py)) are reset with `R` into $\ket{0}$ (Z basis); the rest with `RX`.
 
-Why: the XZZX code is the **Hadamard-deformed** version of the CSS code, obtained by applying H to the
-data qubits in `hset`. The stabilizers and logical operators undergo the same deformation (the `deform`
-function). On the circuit side, we choose each data qubit's preparation basis ($\ket{+}$ or $\ket{0}$) to match
-that deformation, so that **the logical X in the deformed frame is deterministic**.
-The same function is also called **right before the final readout** (H is self-inverse, so the
-preparation basis and the measurement basis coincide).
+Why: the XZZX code is the **Hadamard-deformed** version of the CSS code (the `deform` function deforms its
+stabilizers and logical operators). Rather than realize that deformation with explicit H gates, we simply
+**reset each data qubit directly in the basis its deformed frame requires**, so that **the logical X in the
+deformed frame is deterministic**. The readout mirrors this: `data_readout` measures the X-basis qubits with
+`MX` and the Z-basis qubits with `M` (§1.5). Resetting/measuring in-basis avoids prep/readout H gates
+entirely — so there is no separate single-qubit-gate noise location to model there.
 
 ### 1.3 Syndrome measurement — `syndrome_meas(flip=0.0)`
 
@@ -157,10 +159,11 @@ alongside `rel` / `syndrome_meas`.
 composes them explicitly (and the noisy models slot `final_boundary_detectors` in between):
 
 ```python
-# data_readout(flip=0.0): final readout, returns coord -> absolute measurement index
-self.deform_x_basis_data()                 # return to the same basis as preparation
-self.circuit.append("M", data_list, flip)  # measure all data in Z (X-memory readout); flip>0 = readout error
-# ... record coord -> absolute measurement number, return it
+# data_readout(flip=0.0): measure each data qubit directly in its memory basis
+x_basis, z_basis = self.data_basis_partition()
+self.circuit.append("MX", x_idxs, flip)    # X-basis qubits (off hset); flip>0 = readout error
+self.circuit.append("M",  z_idxs, flip)    # Z-basis qubits (on hset)
+# ... record coord -> absolute measurement number (in append order), return it
 # flip defaults to 0 (perfect) for code-capacity / phenomenological; circuit-level passes p_meas
 
 # define_observable(data_record): the logical-X observable
@@ -193,7 +196,7 @@ self.define_observable(data_record)
 
 ```
 QUBIT_COORDS …                     declare qubit coordinates
-R(data); H(deform)                 prepare |+> / |0>
+prep_data()                        RX/R: prepare |+> off hset, |0> on hset
 syndrome_meas()                    round 0: perfect reference (project into the code space)
 TICK
 PAULI_CHANNEL_1(data, [px,py,pz])  ▶ the only noise: one biased Pauli channel on data
@@ -229,7 +232,7 @@ detectors that fire in round 1 are exactly the traces of the errors introduced b
 ### Structure
 
 ```
-QUBIT_COORDS … ; R(data); H(deform)
+QUBIT_COORDS … ; prep_data()  (RX off hset / R on hset)
 syndrome_meas()                         round 0: perfect reference
 TICK
 for _ in range(rounds):                 ▶ multiple rounds (default: code distance d)
@@ -297,7 +300,7 @@ detectors — see §2.)
 `CircuitLevelCircuitBuilder` extends `NoisyMeasurementCircuitBuilder` and owns its **model-specific** parts
 — `build` and `syndrome_meas` — while *inheriting* the constructor `__init__(rounds, p_meas)` and the
 time-boundary `final_boundary_detectors` from that intermediate class, plus the model-independent plumbing
-from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, `consecutive_round_detectors`, and the
+from `Base` (`rel`, `prep_data`, `init_qubit_coords`, `consecutive_round_detectors`, and the
 `data_readout` / `define_observable` final-readout primitives). It does **not** inherit from
 `PhenomenologicalCircuitBuilder` (see §0 for why).
 
@@ -311,9 +314,10 @@ window, the measurement window, and each of the 4 parallel CNOT steps** (on whic
 
 ```python
 # circuit-level build: noisy bottom boundary (no perfect round 0), no bulk data channel
-self.circuit.append("R", data_list)
-self.circuit.append("X_ERROR", data_list, self.p)   # SD6 reset error on |0> (-> per-basis prep error after H)
-self.deform_x_basis_data()
+self.prep_data()                                     # RX off hset, R on hset (direct basis reset)
+# SD6 reset error: |+> (RX) fails by Z, |0> (R) fails by X
+self.circuit.append("Z_ERROR", x_idxs, self.p)
+self.circuit.append("X_ERROR", z_idxs, self.p)
 self.syndrome_meas()                 # round 0 is the first *noisy* round
 self.initial_boundary_detectors()                    # deterministic-basis checks vs known +1 (bottom boundary)
 for _ in range(self.rounds - 1):                     # remaining rounds; total = self.rounds
@@ -329,8 +333,8 @@ Unlike phenomenological, circuit-level has **no perfect reference round**: round
 bottom time boundary is closed by `initial_boundary_detectors` — the mirror image of
 `final_boundary_detectors` (§3). The deterministic-basis checks (the same `eligible` set, here the X-type
 checks for X-memory) have a known $+1$ eigenvalue in round 0, so a single-measurement detector on their
-round-0 syndrome catches the reset error (`X_ERROR(p)` after `R`, which the `H` deformation turns into the
-per-basis prep error) and any round-0 measurement error. Naively adding reset noise *before* a perfect
+round-0 syndrome catches the reset error (the per-basis prep error: `Z_ERROR(p)` on the `RX`/$\ket{+}$
+qubits, `X_ERROR(p)` on the `R`/$\ket{0}$ qubits) and any round-0 measurement error. Naively adding reset noise *before* a perfect
 round 0 would instead make it **undetectable** (absorbed into the reference, flipping only the observable)
 and collapse the effective distance to $\sim1$ — which is why the perfect round 0 is removed here.
 

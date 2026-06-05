@@ -13,10 +13,9 @@ class CodeCapacityCircuitBuilder(BaseCircuitBuilder):
         px, py, pz = biased_pauli_rates(self.p, self.eta)
         data_list = list(self.code.data_qubits.values())
 
-        # Initialize qubits
+        # Initialize qubits in their memory basis
         self.init_qubit_coords()
-        self.circuit.append("R", data_list)
-        self.deform_x_basis_data()
+        self.prep_data()
 
         # Create the reference point of detector
         # Map the state to the code space

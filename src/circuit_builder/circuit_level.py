@@ -60,15 +60,15 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
         self.circuit = stim.Circuit()
         self.ancilla_order = list(self.code.stabilizers.keys())
 
-        data_list = list(self.code.data_qubits.values())
-
-        self.init_qubit_coords()
-
-        # Prepare |+> / |0>
-        # The following H deformation turns this into the per-basis prep error (Z on |+>, X on |0>)
-        self.circuit.append("R", data_list)
-        self.circuit.append("X_ERROR", data_list, self.p)
-        self.deform_x_basis_data()
+        # Prepare data in its memory basis
+        self.init_qubit_coords()        
+        self.prep_data()
+        # Reset preparation error
+        x_basis, z_basis = self.data_basis_partition()
+        if x_basis:
+            self.circuit.append("Z_ERROR", [idx for _, idx in x_basis], self.p)
+        if z_basis:
+            self.circuit.append("X_ERROR", [idx for _, idx in z_basis], self.p)
 
         # Round 0 (noisy)
         self.syndrome_meas()

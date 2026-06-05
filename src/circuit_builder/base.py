@@ -33,12 +33,21 @@ class BaseCircuitBuilder:
         # Return the relative index of a measurement result
         return stim.target_rec(abs_idx - self.record_counter)
 
-    def deform_x_basis_data(self):
-        # Apply H to data qubits prepared/measured in the X basis (those off hset)
-        x_basis_data_list = [idx for coord, idx in self.code.data_qubits.items()
-                             if coord not in self.code.hset]
-        if x_basis_data_list:
-            self.circuit.append("H", x_basis_data_list)
+    def data_basis_partition(self):
+        # Split data qubits by memory basis: X basis off hset, Z basis on hset.
+        x_basis = [(coord, idx) for coord, idx in self.code.data_qubits.items()
+                   if coord not in self.code.hset]
+        z_basis = [(coord, idx) for coord, idx in self.code.data_qubits.items()
+                   if coord in self.code.hset]
+        return x_basis, z_basis
+
+    def prep_data(self):
+        # Prepare each data qubit in its memory basis
+        x_basis, z_basis = self.data_basis_partition()
+        if x_basis:
+            self.circuit.append("RX", [idx for _, idx in x_basis])
+        if z_basis:
+            self.circuit.append("R", [idx for _, idx in z_basis])
 
     def init_qubit_coords(self):
         for coord, idx in self.code.data_qubits.items():
@@ -80,19 +89,21 @@ class BaseCircuitBuilder:
             )
 
     def data_readout(self, flip: float = 0.0) -> Dict[Coord, int]:
-        # Final data readout in the X-memory basis.
+        # Final data readout: measure each data qubit in its memory basis
         # Returns coord -> absolute measurement index.
-        self.deform_x_basis_data()
-        data_list = list(self.code.data_qubits.values())
-        if flip > 0.0:
-            self.circuit.append("M", data_list, flip)
-        else:
-            self.circuit.append("M", data_list)
-
+        x_basis, z_basis = self.data_basis_partition()
         data_record: Dict[Coord, int] = {}
-        for dcoord, idx in self.code.data_qubits.items():
-            data_record[dcoord] = self.record_counter
-            self.record_counter += 1
+        for gate, group in (("MX", x_basis), ("M", z_basis)):
+            if not group:
+                continue
+            idxs = [idx for _, idx in group]
+            if flip > 0.0:
+                self.circuit.append(gate, idxs, flip)
+            else:
+                self.circuit.append(gate, idxs)
+            for coord, _ in group:
+                data_record[coord] = self.record_counter
+                self.record_counter += 1
         return data_record
 
     def define_observable(self, data_record: Dict[Coord, int]):
