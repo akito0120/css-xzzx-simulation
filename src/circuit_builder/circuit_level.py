@@ -27,8 +27,14 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
                 data_idx = self.code.data_qubits[dcoord]
                 self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
                 if noisy:
-                    # Two-qubit gate error: biased correlated 2-qubit Pauli channel
-                    self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)
+                    # Two-qubit gate error (HBD hybrid model, arXiv:2505.17718):
+                    if pauli == "Z":
+                        # CZ is bias-preserving -> biased correlated 2-qubit Pauli channel
+                        self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)
+                    else:
+                        # CX is not bias-preserving on two-level qubits
+                        # -> plain two-qubit depolarizing (each of the 15 Paulis at p/15).
+                        self.circuit.append("DEPOLARIZE2", [ancilla_idx, data_idx], self.p)
 
         if noisy:
             # Idle error: data qubits wait while the ancillas are measured

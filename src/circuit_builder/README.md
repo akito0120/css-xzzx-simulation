@@ -353,7 +353,7 @@ $(p,\eta)$**, and the two-qubit gate uses a **biased correlated two-qubit Pauli 
 | Location | Implementation | Intent |
 |---|---|---|
 | (1) reset error | `PAULI_CHANNEL_1` on ancillas after `RX` | imperfection of the prepared $\ket{+}$ |
-| (2) 2q gate error | `PAULI_CHANNEL_2` (biased correlated 2-qubit channel) after each controlled-Pauli | imperfection of the entangling gate |
+| (2) 2q gate error | after **CZ**: `PAULI_CHANNEL_2` (biased correlated 2-qubit channel); after **CX**: `DEPOLARIZE2(p)` (each Pauli $p/15$) | imperfection of the entangling gate — CZ is bias-preserving, CX is not (HBD hybrid) |
 | (3a) idle error (reset window) | `PAULI_CHANNEL_1` on **all data** right after the ancillas are reset | data decoheres while it waits for the ancillas to be reset |
 | (3b) idle error (measure window) | `PAULI_CHANNEL_1` on **all data** right before the ancillas are measured | data decoheres while it waits for the ancillas to be measured |
 | (4) measurement flip | `MX(p_meas)` | readout error |
@@ -372,8 +372,16 @@ single $Z$ on *either* qubit survives, the physically correct high-bias limit). 
 depolarizing point (all 15 $=p/15$) is at $\eta=1/4$, **not** $1/2$, because $|H|=3$ and $|L|=12$ (unlike the
 single-qubit $1$-vs-$2$ split, which makes $\eta=1/2$ depolarizing); prior research defines bias as the
 high/low probability ratio rather than anchoring on a depolarizing point. The distribution is symmetric in
-the two qubits, so the control/target order is irrelevant. (Building the decoder DEM from `PAULI_CHANNEL_2`
-requires `approximate_disjoint_errors=True`, which [simulation.py](../simulation.py) passes.)
+the two qubits, so the control/target order is irrelevant.
+
+Following the **HBD hybrid** model (arXiv:2505.17718), this biased channel is applied **only after CZ gates**,
+which can be realized in a bias-preserving way. The X-type checks use **CX gates, which are *not*
+bias-preserving on two-level qubits** (no-go theorem), so they instead get plain **two-qubit depolarizing**
+(`DEPOLARIZE2(p)`, each of the 15 Paulis at $p/15$, independent of $\eta$). These codes only ever emit CX and
+CZ (stabilizers are X/Z only), so CY never arises; were it to, it would be treated as non-bias-preserving
+(depolarizing). Because the CX gates reintroduce $X/Y$ noise regardless of bias, circuit-level thresholds are
+lower than they would be under an idealized all-bias-preserving model. (Building the decoder DEM from
+`PAULI_CHANNEL_2` requires `approximate_disjoint_errors=True`, which [simulation.py](../simulation.py) passes.)
 
 **Why idle noise replaces the bulk channel.**
 In a real device the data qubits are not actually idle during a round: they are repeatedly entangled by
