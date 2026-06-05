@@ -102,7 +102,7 @@ Three noise models are provided as separate circuit builders, all extending a co
 |---|---|---|---|
 | **Code capacity** | one biased Pauli channel on data | perfect | effectively 1 |
 | **Phenomenological** | bulk channel every round | measurement flips | $d$ (default) |
-| **Circuit-level** | from operations only | reset + 2q gate + idle + measurement | $d$ (default) |
+| **Circuit-level** | from operations only | reset + 2q gate + per-step idle + measurement | $d$ (default) |
 
 For a full explanation of all three models, the shared building blocks, and the design
 rationale behind them, see the dedicated
@@ -123,6 +123,16 @@ a controlled-P (CX/CY/CZ, ancilla as control) is applied for each leg, and the a
 measured in the X basis (phase kickback). The same code path therefore serves both the CSS
 and the XZZX checks. Detectors compare each round to the previous one, with a perfect
 reference round 0 so that every detector is deterministic regardless of check type.
+
+For the **circuit-level** model the per-leg controlled gates are not applied ancilla-by-ancilla
+but scheduled into **4 parallel time steps** (`build_cnot_schedule` in
+[circuit_builder/shared.py](./src/circuit_builder/shared.py)). Each stabilizer's legs are
+assigned to steps by their lattice offset so that no data qubit is engaged by two ancillas in
+the same step, and so that the effective fault distance stays equal to $d$ (a distance-preserving
+order in the spirit of Fowler 2012 / Tomita–Svore 2014; verified by exhaustive search with Stim's
+`shortest_graphlike_error`). This time-step structure is what lets the idle noise be attached
+per step to exactly the qubits that are resting — see
+[circuit_builder/README.md](./src/circuit_builder/README.md) §4.
 
 ## Decoding and Logical Error Rate
 

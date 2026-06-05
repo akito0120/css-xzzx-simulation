@@ -1,6 +1,6 @@
 import stim
 from .noisy_measurement import NoisyMeasurementCircuitBuilder
-from .shared import biased_pauli_rates, biased_two_qubit_rates, CGATE
+from .shared import biased_pauli_rates, biased_two_qubit_rates, build_cnot_schedule, CGATE
 
 class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
     # Noise model: circuit-level
@@ -14,32 +14,49 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
 
         ancilla_idxs = [self.code.ancilla_qubits[a] for a in self.ancilla_order]
         data_list = list(self.code.data_qubits.values())
+        all_qubits = data_list + ancilla_idxs
+
+        # Phase 1: Reset
         self.circuit.append("RX", ancilla_idxs)
         if noisy:
-            # Reset preparation error
+            # Ancilla reset preparation error
             self.circuit.append("PAULI_CHANNEL_1", ancilla_idxs, [px, py, pz])
-            # Idle error: data qubits wait while the ancillas are reset
+            # Data qubit idle error in reset window
             self.circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
 
-        for ancilla in self.ancilla_order:
-            ancilla_idx = self.code.ancilla_qubits[ancilla]
-            for dcoord, pauli in self.code.stabilizers[ancilla].items():
+        # Phase 2: 4-step CX/CZ
+        schedule = build_cnot_schedule(self.code)
+        for step in range(4):
+            busy_qubits: set = set()
+            for ancilla in self.ancilla_order:
+                dcoord = schedule[ancilla][step]
+                if dcoord is None:
+                    continue
+                ancilla_idx = self.code.ancilla_qubits[ancilla]
                 data_idx = self.code.data_qubits[dcoord]
+                pauli = self.code.stabilizers[ancilla][dcoord]
                 self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
                 if noisy:
-                    # Two-qubit gate error (HBD hybrid model, arXiv:2505.17718):
+                    # Two-qubit gate error (HBD model)
                     if pauli == "Z":
                         # CZ is bias-preserving -> biased correlated 2-qubit Pauli channel
                         self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)
                     else:
-                        # CX is not bias-preserving on two-level qubits
-                        # -> plain two-qubit depolarizing (each of the 15 Paulis at p/15).
+                        # CX is not bias-preserving on two-level qubits -> plain two-qubit depolarizing
                         self.circuit.append("DEPOLARIZE2", [ancilla_idx, data_idx], self.p)
+                busy_qubits.add(ancilla_idx)
+                busy_qubits.add(data_idx)
+            if noisy:
+                # Idle error: qubits resting this step (boundary data + idle ancillas)
+                idle_qubits = [q for q in all_qubits if q not in busy_qubits]
+                if idle_qubits:
+                    self.circuit.append("PAULI_CHANNEL_1", idle_qubits, [px, py, pz])
+            self.circuit.append("TICK")
 
+        # Phase 3: Measurement
         if noisy:
-            # Idle error: data qubits wait while the ancillas are measured
+            # Data qubit idle error in measurement window
             self.circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
-
         for ancilla in self.ancilla_order:
             ancilla_idx = self.code.ancilla_qubits[ancilla]
             if flip > 0.0:

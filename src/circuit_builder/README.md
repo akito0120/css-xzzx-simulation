@@ -5,7 +5,7 @@ noise models (code capacity / phenomenological / circuit-level), and the design 
 
 Files covered:
 - [base.py](./base.py) — common base class `BaseCircuitBuilder`
-- [shared.py](./shared.py) — model-independent helpers (`biased_pauli_rates`, `CGATE`)
+- [shared.py](./shared.py) — model-independent helpers (`biased_pauli_rates`, `biased_two_qubit_rates`, `build_cnot_schedule`, `CGATE`)
 - [noisy_measurement.py](./noisy_measurement.py) — intermediate class `NoisyMeasurementCircuitBuilder` (phenomenological + circuit-level)
 - [code_capacity.py](./code_capacity.py) — code capacity model
 - [phenomenological.py](./phenomenological.py) — phenomenological model
@@ -303,8 +303,8 @@ from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, `consecutive_rou
 Its `build` mirrors phenomenological's round/detector loop — round 0 reference, then `rounds` noisy
 rounds each emitting a consecutive-round detector, then a perfect final readout — with **one difference**:
 there is **no bulk per-round data channel**. Circuit-level's data noise comes entirely from the **actual
-operations** inside `syndrome_meas`: reset error, two-qubit gate error, and **idle noise on data during
-the reset and measurement windows**.
+operations** inside `syndrome_meas`: reset error, two-qubit gate error, and **idle noise during the reset
+window, the measurement window, and each of the 4 parallel CNOT steps** (on whichever qubits rest that step).
 
 ```python
 # circuit-level build's noisy round — no bulk data channel, just syndrome_meas:
@@ -330,11 +330,25 @@ def syndrome_meas(self, flip=0.0):
         self.circuit.append("PAULI_CHANNEL_1", ancilla_idxs, [px,py,pz])      # (1) reset error
         self.circuit.append("PAULI_CHANNEL_1", data_list,    [px,py,pz])      # (3a) idle: data waits during reset
 
-    for ancilla in ...:
-        for dcoord, pauli in legs.items():
+    schedule = build_cnot_schedule(self.code)   # ancilla -> [leg per step], 4 parallel steps
+    for step in range(4):
+        busy = set()
+        for ancilla in self.ancilla_order:
+            dcoord = schedule[ancilla][step]
+            if dcoord is None:                  # this ancilla rests this step (boundary check)
+                continue
+            pauli = self.code.stabilizers[ancilla][dcoord]
             self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
             if noisy:
-                self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)  # (2) 2q gate error
+                if pauli == "Z":                # CZ: bias-preserving -> biased correlated channel
+                    self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)  # (2) 2q gate error
+                else:                           # CX: not bias-preserving -> plain depolarizing
+                    self.circuit.append("DEPOLARIZE2", [ancilla_idx, data_idx], self.p)
+            busy |= {ancilla_idx, data_idx}
+        if noisy:
+            idle = [q for q in all_qubits if q not in busy]   # (3c) per-step idle: whoever rests this step
+            self.circuit.append("PAULI_CHANNEL_1", idle, [px,py,pz])
+        self.circuit.append("TICK")
 
     if noisy:
         self.circuit.append("PAULI_CHANNEL_1", data_list, [px,py,pz])         # (3b) idle: data waits during measure
@@ -343,6 +357,10 @@ def syndrome_meas(self, flip=0.0):
         self.circuit.append("MX", [ancilla_idx], flip)   # (4) measurement flip
         ...
 ```
+
+The controlled gates are emitted **step by step** rather than ancilla by ancilla. Each of the 4
+steps applies one leg from every stabilizer that still has work to do, all in parallel, so a round
+has a well-defined depth and a well-defined notion of "which qubits are idle right now."
 
 ### Why it looks like this
 
@@ -356,6 +374,7 @@ $(p,\eta)$**, and the two-qubit gate uses a **biased correlated two-qubit Pauli 
 | (2) 2q gate error | after **CZ**: `PAULI_CHANNEL_2` (biased correlated 2-qubit channel); after **CX**: `DEPOLARIZE2(p)` (each Pauli $p/15$) | imperfection of the entangling gate — CZ is bias-preserving, CX is not (HBD hybrid) |
 | (3a) idle error (reset window) | `PAULI_CHANNEL_1` on **all data** right after the ancillas are reset | data decoheres while it waits for the ancillas to be reset |
 | (3b) idle error (measure window) | `PAULI_CHANNEL_1` on **all data** right before the ancillas are measured | data decoheres while it waits for the ancillas to be measured |
+| (3c) idle error (per CNOT step) | `PAULI_CHANNEL_1` on the qubits **not gated** in that step (boundary data + resting ancillas) | data/ancillas decohere while they sit out a gate step they have no leg in |
 | (4) measurement flip | `MX(p_meas)` | readout error |
 
 The two-qubit gate error is a genuine **correlated** channel (each gate fault produces a weight-2 error at
@@ -385,12 +404,36 @@ lower than they would be under an idealized all-bias-preserving model. (Building
 
 **Why idle noise replaces the bulk channel.**
 In a real device the data qubits are not actually idle during a round: they are repeatedly entangled by
-the gates (2), and in between they *wait* — first while every ancilla is reset, then while every ancilla
-is measured. Those two waiting windows are the genuine "idling" periods, so the idle noise is injected
-exactly there (3a, 3b), once on every data qubit per window. This is what makes circuit-level
-"operation-attached": each channel (1)–(4) maps to a concrete hardware step, with no leftover abstract
-bulk term. (Adjacent identical `PAULI_CHANNEL_1` instructions are fused by Stim — e.g. reset error + 3a
-appear as one combined channel — but that is purely cosmetic.)
+the gates (2), and in between they *wait*. There are three kinds of waiting period, each getting its own
+idle channel: while every ancilla is reset (3a), while every ancilla is measured (3b), and — because the
+entangling gates run in **4 parallel steps** — while a qubit *sits out a gate step it has no leg in* (3c).
+The per-step idle (3c) only ever lands on **boundary** qubits: a weight-4 bulk plaquette engages all four
+of its data qubits across the four steps, but weight-2/3 boundary checks leave their ancilla (and the
+unused data sites) resting in some steps. This is what makes circuit-level "operation-attached": each
+channel (1)–(4) maps to a concrete hardware step, with no leftover abstract bulk term. (Adjacent identical
+`PAULI_CHANNEL_1` instructions are fused by Stim — e.g. reset error + 3a appear as one combined channel —
+but that is purely cosmetic.)
+
+**The CNOT schedule and distance preservation.**
+The four steps come from `build_cnot_schedule` ([shared.py](./shared.py)), which assigns every
+stabilizer's legs to time steps by their lattice offset (`STEP_OF_OFFSET`). Two properties matter:
+
+- **No double-booking.** Within a step, no data qubit is targeted by two ancillas — a physical
+  requirement, since a qubit can only take part in one two-qubit gate at a time. The offset-based
+  assignment guarantees this for the rotated-surface-code geometry (a data qubit's four neighbouring
+  ancillas sit at four distinct offsets, hence four distinct steps).
+- **Distance preservation.** A careless gate order lets a single mid-round ancilla fault propagate into a
+  weight-2 *hook error* aligned with a logical operator, which would halve the effective distance
+  ($d \to \lceil (d{+}1)/2 \rceil$). The chosen row-major order keeps hook errors off the logical-X
+  direction, so the effective fault distance stays exactly $d$. This order was picked by **exhaustive
+  search** over all step tables, scored with Stim's `shortest_graphlike_error` (and
+  `search_for_undetectable_logical_errors` for the ungraphlike check) across both codes, all distances,
+  and every bias including $\eta=\infty$ — the high-bias regime where *fragile boundaries* (Higgott
+  *et al.*, [arXiv:2203.04948](https://arxiv.org/abs/2203.04948)) could otherwise reduce the distance.
+
+A single common order works here because the experiment measures **only the logical-X observable**; a
+two-sided memory (X *and* Z) would need the standard X/Z-transposed schedule instead (noted in the
+[shared.py](./shared.py) comment).
 
 - `noisy = self.current_round > 0` keeps **only round 0 perfect** (the reference round gets no reset,
   gate, or idle noise). This decision does not depend on the value of `flip`, so it stays correct even
@@ -408,7 +451,7 @@ appear as one combined channel — but that is purely cosmetic.)
 | Item | code capacity | phenomenological | circuit-level |
 |---|---|---|---|
 | Data noise | once | bulk, every round (`data_round_noise`) | none (bulk disabled) |
-| Idle noise | none | none | every round, reset + measure windows |
+| Idle noise | none | none | every round, reset + measure windows + per CNOT step |
 | Measurement noise | none | yes (`p_meas`) | yes (`p_meas`) |
 | Reset noise | none | none | yes |
 | Gate noise | none | none | yes (per 2q gate) |
@@ -444,12 +487,17 @@ Consequences:
    `p`-axis; a smaller circuit-level threshold is expected, not a regression.
 2. **Within one model, the `(p, eta)` sweep is self-consistent**, so the CSS-vs-XZZX comparison — the
    actual goal — is valid because it is always done at the same `p` *and* the same model.
-3. Applying the idle channel in **both** the reset window (3a) and the measure window (3b) is **not**
-   double-counting: they are two distinct physical waiting periods. (The earlier bulk-vs-idle
-   double-count, fixed by disabling `data_round_noise` in circuit-level, was a separate issue.)
-4. **Known simplification**: idle noise is injected only in the reset/measure windows, not between the
-   CX layers (no per-layer idling). This slightly *over*-estimates the threshold but affects CSS and
-   XZZX equally, so it does not bias the comparison.
+3. Applying the idle channel in the reset window (3a), the measure window (3b) **and** each CNOT step
+   (3c) is **not** double-counting: they are distinct physical waiting periods, and within a step (3c)
+   only covers qubits with no gate that step. (The earlier bulk-vs-idle double-count, fixed by disabling
+   `data_round_noise` in circuit-level, was a separate issue.)
+4. **Per-step idling is now modelled.** Earlier the idle noise was injected only in the reset/measure
+   windows, with the entangling gates applied ancilla-by-ancilla and no notion of per-layer idling. The
+   gates are now scheduled into 4 parallel steps (`build_cnot_schedule`) and boundary qubits that rest
+   during a step receive idle noise (3c). Because idle noise here is **biased**, its placement is not a
+   neutral knob: it sets the balance between biased (idle) and unbiased (CX-depolarizing) noise that
+   determines the high-bias XZZX threshold, which is why the per-step model matters for this comparison
+   rather than merely shifting both codes equally.
 
 
 

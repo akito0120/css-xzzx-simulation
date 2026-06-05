@@ -1,4 +1,4 @@
-from .shared import biased_pauli_rates, biased_two_qubit_rates, CGATE
+from .shared import biased_pauli_rates, biased_two_qubit_rates, build_cnot_schedule, CGATE
 from .base import BaseCircuitBuilder
 from .noisy_measurement import NoisyMeasurementCircuitBuilder
 from .code_capacity import CodeCapacityCircuitBuilder
@@ -9,6 +9,7 @@ __all__ = [
     "BaseCircuitBuilder",
     "biased_pauli_rates",
     "biased_two_qubit_rates",
+    "build_cnot_schedule",
     "CGATE",
     "NoisyMeasurementCircuitBuilder",
     "CodeCapacityCircuitBuilder",
