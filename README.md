@@ -82,6 +82,15 @@ $\eta = 0.5$ is standard depolarizing noise; $\eta \rightarrow \infty$ is pure d
 `biased_pauli_rates(p, eta)` in [circuit_builder/shared.py](./src/circuit_builder/shared.py)
 (the $\eta = \infty$ case returns the pure-Z channel $(0, 0, p)$).
 
+The two-qubit-gate error channel used in the circuit-level model uses the **same high/low
+partition**, following the bias-preserving-gate convention of the XZZX biased-noise literature
+(Darmawan *et al.*, [arXiv:2104.09539](https://arxiv.org/abs/2104.09539); HBD model,
+[arXiv:2505.17718](https://arxiv.org/abs/2505.17718)): the 15 two-qubit Paulis split into a
+high-rate Z-subgroup $\{IZ, ZI, ZZ\}$ and 12 low-rate errors, with bias $\eta = P(\{IZ,ZI,ZZ\})/P(\text{rest})$,
+generalizing the single-qubit $\eta = p_Z/(p_X+p_Y)$. As $\eta\to\infty$ it concentrates uniformly on
+$\{IZ, ZI, ZZ\}$. This is implemented by `biased_two_qubit_rates(p, eta)` in the same file; see
+[circuit_builder/README.md](./src/circuit_builder/README.md) for the full convention and limits.
+
 ### Noise models
 
 Three noise models are provided as separate circuit builders, all extending a common

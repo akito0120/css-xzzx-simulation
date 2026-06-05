@@ -1,6 +1,6 @@
 import stim
 from .noisy_measurement import NoisyMeasurementCircuitBuilder
-from .shared import biased_pauli_rates, CGATE
+from .shared import biased_pauli_rates, biased_two_qubit_rates, CGATE
 
 class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
     # Noise model: circuit-level
@@ -10,6 +10,7 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
         # current_round == 0 is the perfect reference round; everything later is noisy.
         noisy = self.current_round > 0
         px, py, pz = biased_pauli_rates(self.p, self.eta)
+        pc2 = biased_two_qubit_rates(self.p, self.eta)
 
         ancilla_idxs = [self.code.ancilla_qubits[a] for a in self.ancilla_order]
         data_list = list(self.code.data_qubits.values())
@@ -26,8 +27,8 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
                 data_idx = self.code.data_qubits[dcoord]
                 self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
                 if noisy:
-                    # Two-qubit gate error: independent biased 1q channel on each qubit
-                    self.circuit.append("PAULI_CHANNEL_1", [ancilla_idx, data_idx], [px, py, pz])
+                    # Two-qubit gate error: biased correlated 2-qubit Pauli channel
+                    self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)
 
         if noisy:
             # Idle error: data qubits wait while the ancillas are measured

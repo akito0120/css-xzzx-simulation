@@ -323,6 +323,7 @@ each round and **double-count** the data decoherence — so it deliberately omit
 def syndrome_meas(self, flip=0.0):
     noisy = self.current_round > 0          # round 0 is the perfect reference
     px, py, pz = biased_pauli_rates(self.p, self.eta)
+    pc2 = biased_two_qubit_rates(self.p, self.eta)   # 15 probs for PAULI_CHANNEL_2
 
     self.circuit.append("RX", ancilla_idxs)
     if noisy:
@@ -333,7 +334,7 @@ def syndrome_meas(self, flip=0.0):
         for dcoord, pauli in legs.items():
             self.circuit.append(CGATE[pauli], [ancilla_idx, data_idx])
             if noisy:
-                self.circuit.append("PAULI_CHANNEL_1", [ancilla_idx, data_idx], [px,py,pz])  # (2) 2q gate error
+                self.circuit.append("PAULI_CHANNEL_2", [ancilla_idx, data_idx], pc2)  # (2) 2q gate error
 
     if noisy:
         self.circuit.append("PAULI_CHANNEL_1", data_list, [px,py,pz])         # (3b) idle: data waits during measure
@@ -346,20 +347,33 @@ def syndrome_meas(self, flip=0.0):
 ### Why it looks like this
 
 **Circuit-level is the most realistic model: errors land on every operation (preparation, gates,
-measurement, idling).** Here, every noise location uses an **independent biased single-qubit Pauli channel
-at rate $(p,\eta)$**:
+measurement, idling).** The single-qubit locations use a **biased single-qubit Pauli channel at rate
+$(p,\eta)$**, and the two-qubit gate uses a **biased correlated two-qubit Pauli channel**:
 
 | Location | Implementation | Intent |
 |---|---|---|
 | (1) reset error | `PAULI_CHANNEL_1` on ancillas after `RX` | imperfection of the prepared $\ket{+}$ |
-| (2) 2q gate error | `PAULI_CHANNEL_1` on **both qubits independently** after each controlled-Pauli | imperfection of the entangling gate |
+| (2) 2q gate error | `PAULI_CHANNEL_2` (biased correlated 2-qubit channel) after each controlled-Pauli | imperfection of the entangling gate |
 | (3a) idle error (reset window) | `PAULI_CHANNEL_1` on **all data** right after the ancillas are reset | data decoheres while it waits for the ancillas to be reset |
 | (3b) idle error (measure window) | `PAULI_CHANNEL_1` on **all data** right before the ancillas are measured | data decoheres while it waits for the ancillas to be measured |
 | (4) measurement flip | `MX(p_meas)` | readout error |
 
-The two-qubit error is modeled as an **independent biased 1q channel on both qubits** rather than a
-**correlated 2q channel (`PAULI_CHANNEL_2`)**, because it lets us reuse the existing `biased_pauli_rates`
-directly, keeping the implementation simple and consistent (a deliberate design choice).
+The two-qubit gate error is a genuine **correlated** channel (each gate fault produces a weight-2 error at
+$O(p)$, as in standard circuit-level models), built by `biased_two_qubit_rates` in
+[shared.py](./shared.py) next to `biased_pauli_rates`. It follows the **bias-preserving-gate** convention of
+the XZZX biased-noise literature (Darmawan *et al.*, [arXiv:2104.09539](https://arxiv.org/abs/2104.09539);
+HBD model, [arXiv:2505.17718](https://arxiv.org/abs/2505.17718)): the 15 non-identity two-qubit Paulis are
+**partitioned** into a high-rate Z-subgroup $H=\{IZ, ZI, ZZ\}$ and the 12 remaining low-rate errors, with
+bias $\eta = P(H)/P(L)$ — exactly the two-qubit generalization of the single-qubit convention
+$\eta = p_Z/(p_X+p_Y)$ (high-rate $\{Z\}$ vs low-rate $\{X,Y\}$). Probabilities are uniform within each set
+and sum to $p$: each high-rate component $= p\eta/(3(1+\eta))$, each low-rate component $= p/(12(1+\eta))$.
+As $\eta\to\infty$ the channel concentrates **uniformly on the Z-subgroup** $\{IZ, ZI, ZZ\}$ (each $p/3$ — a
+single $Z$ on *either* qubit survives, the physically correct high-bias limit). Note the standard two-qubit
+depolarizing point (all 15 $=p/15$) is at $\eta=1/4$, **not** $1/2$, because $|H|=3$ and $|L|=12$ (unlike the
+single-qubit $1$-vs-$2$ split, which makes $\eta=1/2$ depolarizing); prior research defines bias as the
+high/low probability ratio rather than anchoring on a depolarizing point. The distribution is symmetric in
+the two qubits, so the control/target order is irrelevant. (Building the decoder DEM from `PAULI_CHANNEL_2`
+requires `approximate_disjoint_errors=True`, which [simulation.py](../simulation.py) passes.)
 
 **Why idle noise replaces the bulk channel.**
 In a real device the data qubits are not actually idle during a round: they are repeatedly entangled by
@@ -409,8 +423,9 @@ this is intentional, not a bug:
 - **Phenomenological**: `p` is the probability that a data qubit takes a Pauli error **per round**
   (one lumped `data_round_noise()` channel, rates summing to `p`); the **same `p` also sets the
   measurement flip** (`p_meas` defaults to `p`).
-- **Circuit-level**: `p` is the **per-operation** error rate. Reset, every two-qubit gate, each idle
-  window (reset / measure), and the measurement *each* fail independently at rate ≈ `p`. A data qubit
+- **Circuit-level**: `p` is the **per-operation** error rate. Reset, each idle window (reset / measure),
+  and the measurement each fail at rate ≈ `p` (single-qubit channels); every two-qubit gate fails at total
+  rate `p` via the **correlated** `PAULI_CHANNEL_2` (one weight-≤2 Pauli fault per gate). A data qubit
   therefore passes through several fault locations per round, so its **effective per-round error is
   larger than `p`** — exactly the standard circuit-level convention (and the reason circuit-level
   thresholds in `p` are numerically far below phenomenological ones).

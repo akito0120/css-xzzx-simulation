@@ -3,7 +3,7 @@ import pymatching
 import numpy as np
 
 def estimate_logical_error_rate(circuit: stim.Circuit, shots: int = 100_000):
-    dem = circuit.detector_error_model(decompose_errors=True)
+    dem = circuit.detector_error_model(decompose_errors=True, approximate_disjoint_errors=True)
     matching = pymatching.Matching.from_detector_error_model(dem)
     sampler = circuit.compile_detector_sampler()
 
