@@ -20,7 +20,7 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
         self.circuit.append("RX", ancilla_idxs)
         if noisy:
             # Ancilla reset preparation error
-            self.circuit.append("PAULI_CHANNEL_1", ancilla_idxs, [px, py, pz])
+            self.circuit.append("Z_ERROR", ancilla_idxs, self.p)
             # Data qubit idle error in reset window
             self.circuit.append("PAULI_CHANNEL_1", data_list, [px, py, pz])
 

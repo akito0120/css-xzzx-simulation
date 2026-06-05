@@ -327,7 +327,7 @@ def syndrome_meas(self, flip=0.0):
 
     self.circuit.append("RX", ancilla_idxs)
     if noisy:
-        self.circuit.append("PAULI_CHANNEL_1", ancilla_idxs, [px,py,pz])      # (1) reset error
+        self.circuit.append("Z_ERROR", ancilla_idxs, self.p)                  # (1) reset error: Z flip of |+>
         self.circuit.append("PAULI_CHANNEL_1", data_list,    [px,py,pz])      # (3a) idle: data waits during reset
 
     schedule = build_cnot_schedule(self.code)   # ancilla -> [leg per step], 4 parallel steps
@@ -365,12 +365,13 @@ has a well-defined depth and a well-defined notion of "which qubits are idle rig
 ### Why it looks like this
 
 **Circuit-level is the most realistic model: errors land on every operation (preparation, gates,
-measurement, idling).** The single-qubit locations use a **biased single-qubit Pauli channel at rate
-$(p,\eta)$**, and the two-qubit gate uses a **biased correlated two-qubit Pauli channel**:
+measurement, idling).** The **idle** locations use a **biased single-qubit Pauli channel at rate
+$(p,\eta)$**, the **ancilla reset** uses a **pure $Z$ flip** at rate $p$ (the only fault that affects an
+$\ket{+}$ preparation), and the two-qubit gate uses a **biased correlated two-qubit Pauli channel**:
 
 | Location | Implementation | Intent |
 |---|---|---|
-| (1) reset error | `PAULI_CHANNEL_1` on ancillas after `RX` | imperfection of the prepared $\ket{+}$ |
+| (1) reset error | `Z_ERROR(p)` on ancillas after `RX` | imperfection of the prepared $\ket{+}$: a $Z$ flip sends $\ket{+}\to\ket{-}$. A full Pauli channel would be wasteful here since $X\ket{+}=\ket{+}$ |
 | (2) 2q gate error | after **CZ**: `PAULI_CHANNEL_2` (biased correlated 2-qubit channel); after **CX**: `DEPOLARIZE2(p)` (each Pauli $p/15$) | imperfection of the entangling gate — CZ is bias-preserving, CX is not (HBD hybrid) |
 | (3a) idle error (reset window) | `PAULI_CHANNEL_1` on **all data** right after the ancillas are reset | data decoheres while it waits for the ancillas to be reset |
 | (3b) idle error (measure window) | `PAULI_CHANNEL_1` on **all data** right before the ancillas are measured | data decoheres while it waits for the ancillas to be measured |
@@ -410,9 +411,9 @@ entangling gates run in **4 parallel steps** — while a qubit *sits out a gate 
 The per-step idle (3c) only ever lands on **boundary** qubits: a weight-4 bulk plaquette engages all four
 of its data qubits across the four steps, but weight-2/3 boundary checks leave their ancilla (and the
 unused data sites) resting in some steps. This is what makes circuit-level "operation-attached": each
-channel (1)–(4) maps to a concrete hardware step, with no leftover abstract bulk term. (Adjacent identical
-`PAULI_CHANNEL_1` instructions are fused by Stim — e.g. reset error + 3a appear as one combined channel —
-but that is purely cosmetic.)
+channel (1)–(4) maps to a concrete hardware step, with no leftover abstract bulk term. (Where Stim sees
+adjacent identical noise instructions on the same targets it may fuse them in the printed circuit, but
+that is purely cosmetic.)
 
 **The CNOT schedule and distance preservation.**
 The four steps come from `build_cnot_schedule` ([shared.py](./shared.py)), which assigns every
