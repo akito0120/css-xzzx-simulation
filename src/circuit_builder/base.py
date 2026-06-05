@@ -79,11 +79,15 @@ class BaseCircuitBuilder:
                 [ancilla[0], ancilla[1], self.current_round],
             )
 
-    def data_readout(self) -> Dict[Coord, int]:
-        # Final perfect data readout in the X-memory basis.
+    def data_readout(self, flip: float = 0.0) -> Dict[Coord, int]:
+        # Final data readout in the X-memory basis.
         # Returns coord -> absolute measurement index.
         self.deform_x_basis_data()
-        self.circuit.append("M", list(self.code.data_qubits.values()))
+        data_list = list(self.code.data_qubits.values())
+        if flip > 0.0:
+            self.circuit.append("M", data_list, flip)
+        else:
+            self.circuit.append("M", data_list)
 
         data_record: Dict[Coord, int] = {}
         for dcoord, idx in self.code.data_qubits.items():

@@ -85,8 +85,8 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
             self.consecutive_round_detectors()
             self.circuit.append("TICK")
 
-        # Final perfect data readout, time-boundary detectors and logical observable
-        data_record = self.data_readout()
+        # Final data readout (with readout error), time-boundary detectors and logical observable
+        data_record = self.data_readout(flip=self.p_meas)
         self.final_boundary_detectors(data_record)
         self.define_observable(data_record)
 

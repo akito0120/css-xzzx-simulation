@@ -157,10 +157,11 @@ alongside `rel` / `syndrome_meas`.
 composes them explicitly (and the noisy models slot `final_boundary_detectors` in between):
 
 ```python
-# data_readout(): final perfect readout, returns coord -> absolute measurement index
+# data_readout(flip=0.0): final readout, returns coord -> absolute measurement index
 self.deform_x_basis_data()                 # return to the same basis as preparation
-self.circuit.append("M", data_list)        # measure all data in Z (effectively the X-memory readout)
+self.circuit.append("M", data_list, flip)  # measure all data in Z (X-memory readout); flip>0 = readout error
 # ... record coord -> absolute measurement number, return it
+# flip defaults to 0 (perfect) for code-capacity / phenomenological; circuit-level passes p_meas
 
 # define_observable(data_record): the logical-X observable
 observable_targets = [self.rel(data_record[dc]) for dc in self.code.logical_x]
@@ -301,7 +302,8 @@ from `Base` (`rel`, `deform_x_basis_data`, `init_qubit_coords`, `consecutive_rou
 `PhenomenologicalCircuitBuilder` (see §0 for why).
 
 Its `build` mirrors phenomenological's round/detector loop — round 0 reference, then `rounds` noisy
-rounds each emitting a consecutive-round detector, then a perfect final readout — with **one difference**:
+rounds each emitting a consecutive-round detector, then a final data readout **carrying a readout error**
+(`data_readout(flip=p_meas)`, unlike phenomenological's perfect readout) — with **one difference**:
 there is **no bulk per-round data channel**. Circuit-level's data noise comes entirely from the **actual
 operations** inside `syndrome_meas`: reset error, two-qubit gate error, and **idle noise during the reset
 window, the measurement window, and each of the 4 parallel CNOT steps** (on whichever qubits rest that step).
@@ -441,8 +443,11 @@ two-sided memory (X *and* Z) would need the standard X/Z-transposed schedule ins
 - `noisy = self.current_round > 0` keeps **only round 0 perfect** (the reference round gets no reset,
   gate, or idle noise). This decision does not depend on the value of `flip`, so it stays correct even
   for edge cases like `p_meas=0`.
-- The final data readout stays perfect (via `Base.data_readout` + `Base.define_observable`, composed
-  directly in `build`). Between them, `build` calls the time-boundary `final_boundary_detectors` from
+- The final data readout **carries a readout error** at rate `p_meas` (via `Base.data_readout(flip=p_meas)`
+  + `Base.define_observable`, composed directly in `build`) — so the upper time boundary is noisy too, like
+  a standard circuit-level memory experiment. The `final_boundary_detectors` pick these readout flips up as
+  detection events, and they also feed the logical-X observable. Between `data_readout` and
+  `define_observable`, `build` calls the time-boundary `final_boundary_detectors` from
   `NoisyMeasurementCircuitBuilder` — the same prep-basis reconstruction described in §3. Because the logic
   is common to both noisy-measurement models, phenomenological and circuit-level **call that one
   intermediate-class implementation** rather than each carrying a copy.
