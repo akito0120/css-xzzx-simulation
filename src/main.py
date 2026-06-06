@@ -11,10 +11,50 @@ from circuit_builder import CodeCapacityCircuitBuilder, CircuitLevelCircuitBuild
 from simulation import estimate_logical_error_rate, wilson_interval
 from threshold import SamplePoint, estimate_threshold
 
+def draw_collapse(path, eta, css, xzzx):
+    # Data-collapse plot: rescale each point to x = (p - p_th) * d^(1/nu) and plot p_L against it
+    # Under the FSS ansatz all distances fall on a single curve
+    fig, axes = plt.subplots(1, 2, figsize=(18, 8), dpi=600)
+    for ax, (results, fit, colors, name) in zip(axes, (css, xzzx)):
+        x_all, pL_all = [], []
+        for i, (label, points) in enumerate(results.items()):
+            ps_arr = np.array([sp.physical_error_rate for sp in points])
+            ds_arr = np.array([sp.distance for sp in points])
+            p_Ls = np.array([sp.logical_error_rate for sp in points])
+            errs = np.array([sp.logical_errors for sp in points])
+            measured = errs > 0
+            x = (ps_arr - fit.p_th) * ds_arr ** (1.0 / fit.nu)
+            ax.scatter(x[measured], p_Ls[measured], s=18, color=colors[i], label=label)
+            x_all.append(x[measured]); pL_all.append(p_Ls[measured])
+        
+        # Overlay the fitted scaling function f(x) = a + b x + c x^2
+        # drawn only over the span of the actual data
+        a, b, c = fit.popt[2], fit.popt[3], fit.popt[4]
+        x_all = np.concatenate(x_all) if x_all else np.array([0.0])
+        pL_all = np.concatenate(pL_all) if pL_all else np.array([0.0])
+        xs = np.linspace(x_all.min(), x_all.max(), 200)
+        ax.plot(xs, a + b * xs + c * xs ** 2, color="black", lw=1.0,
+                label="fitted f(x)")
+        if pL_all.size:
+            ax.set_ylim(0, 1.15 * float(pL_all.max()))
+        ax.set_xlabel(r"$(p - p_{th})\, d^{1/\nu}$")
+        ax.set_ylabel("Logical Error Rate")
+        ax.set_title(
+            f"{name}: p_th={fit.p_th:.4f}±{fit.p_th_err:.4f}, "
+            f"ν={fit.nu:.2f}±{fit.nu_err:.2f}, χ²_red={fit.chi2_red:.2f}, "
+            f"n={fit.n_points}"
+        )
+        ax.grid(True, alpha=0.4)
+        ax.legend(fontsize=8)
+
+    fig.suptitle(f"FSS data collapse (η = {eta})")
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--outdir", default="results")
-    ap.add_argument("--draw-threshold", action="store_true", default=False)
     ap.add_argument("--max-shots", type=int, default=2_000_000)
     ap.add_argument("--target-errors", type=int, default=200)
     ap.add_argument("--batch-size", type=int, default=100_000)
@@ -97,8 +137,8 @@ if __name__ == "__main__":
                     progress.remove_task(distance_task)
 
                 # FSS fitting
-                css_p_th = estimate_threshold(css_sample_points)
-                xzzx_p_th = estimate_threshold(xzzx_sample_points)
+                css_fit = estimate_threshold(css_sample_points)
+                xzzx_fit = estimate_threshold(xzzx_sample_points)
 
                 # Draw results
                 mpl.rcParams["font.family"] = "serif"
@@ -111,10 +151,11 @@ if __name__ == "__main__":
 
                 # Draw logical error rates
                 def draw_curve(label, points: List[SamplePoint], color):
+                    # Error bars are the 1-sigma Wilson interval (z=1.0)
                     ps_arr = np.array([sp.physical_error_rate for sp in points])
                     errs = np.array([sp.logical_errors for sp in points])
-                    lows = np.array([wilson_interval(sp.logical_errors, sp.shots)[0] for sp in points])
-                    highs = np.array([wilson_interval(sp.logical_errors, sp.shots)[1] for sp in points])
+                    lows = np.array([wilson_interval(sp.logical_errors, sp.shots, z=1.0)[0] for sp in points])
+                    highs = np.array([wilson_interval(sp.logical_errors, sp.shots, z=1.0)[1] for sp in points])
                     p_Ls = np.array([sp.logical_error_rate for sp in points])
 
                     measured = errs > 0
@@ -143,22 +184,35 @@ if __name__ == "__main__":
                 for i, (label, points) in enumerate(xzzx_results.items()):
                     draw_curve(label, points, xzzx_colors[i])
 
-                # Draw thresholds
-                if(args.draw_threshold):
-                    ax.axvline(x = css_p_th, label=f"CSS p_th = {css_p_th:.3f}", color=css_colors[len(distances)], linestyle="--")
-                    ax.axvline(x = xzzx_p_th, label=f"XZZX p_th = {xzzx_p_th:.3f}", color=xzzx_colors[len(distances)], linestyle="--")
+                # Draw thresholds (vertical line + 1-sigma uncertainty band)
+                for fit, color, name in (
+                        (css_fit, css_colors[len(distances)], "css"),
+                        (xzzx_fit, xzzx_colors[len(distances)], "xzzx")
+                    ):
+                    ax.axvline(x=fit.p_th, color=color, linestyle="--",
+                               label=f"{name} p_th = {fit.p_th:.4f} ± {fit.p_th_err:.4f}")
+                    ax.axvspan(fit.p_th - fit.p_th_err, fit.p_th + fit.p_th_err,
+                               color=color, alpha=0.1)
 
                 ax.set_xscale('linear')
                 ax.set_yscale('log')
 
                 ax.set_xlabel('Physical Error Rate')
-                ax.set_ylabel('Logical Error Rate')
+                ax.set_ylabel('Logical Error Rate (error bars: 1σ Wilson)')
                 ax.set_title(f'Rotated CSS Surface Code vs XZZX Code Simulation Results with η = {eta}')
 
                 ax.grid(True, which="both", alpha=0.5)
                 ax.legend()
 
                 plt.savefig(f"{args.outdir}/result_{eta}.png")
+                plt.close(fig)
+
+                # Draw data-collapse figure: rescaled axis x = (p - p_th) d^(1/nu)
+                draw_collapse(
+                    f"{args.outdir}/collapse_{eta}.png", eta,
+                    (css_results, css_fit, css_colors, "CSS"),
+                    (xzzx_results, xzzx_fit, xzzx_colors, "XZZX")
+                )
             
                 progress.update(eta_task, advance=1)
                 progress.remove_task(code_type_task)

@@ -155,7 +155,22 @@ $$
 
 together with an uncertainty given by the half-width of the **Wilson score interval** at $z = 1$
 (≈ 1σ, computed by `wilson_interval`), which is better-behaved than the plain Bernoulli
-$\sqrt{p_L (1 - p_L) / \text{shots}}$ near $p_L \rightarrow 0$.
+$\sqrt{p_L (1 - p_L) / \text{shots}}$ near $p_L \rightarrow 0$. The same 1σ Wilson interval is
+used for the plotted error bars, so the figures and the FSS weights share one convention.
+
+### Decoder choice and its limitations
+
+MWPM is the standard, fast decoder for surface-code-family codes, but it is **not optimal here**,
+and the reported thresholds should be read as a *lower bound* attainable with a better decoder:
+
+- The genuinely **correlated** two-qubit noise (`PAULI_CHANNEL_2`) is forced into a *graphlike*
+  detector error model by `decompose_errors=True, approximate_disjoint_errors=True`; the residual
+  correlations between the decomposed edges are then **ignored** by the matching.
+- Under strong **Z-bias** the dominant errors become highly correlated along the deformed XZZX
+  lattice; a decoder that exploits this structure — **correlated matching**, or belief propagation
+  with ordered-statistics decoding (**BP+OSD**) — would recover more of those correlations and
+  raise the measured threshold. Swapping in such a decoder is the most direct way to tighten the
+  CSS-vs-XZZX comparison and is left as future work.
 
 ## Threshold Estimation
 
@@ -178,10 +193,21 @@ f(x) \approx a + b x + c x^2
 $$
 
 The parameters $(p_{\mathrm{th}}, \nu, a, b, c)$ are obtained by nonlinear least-squares
-fitting (`scipy.optimize.curve_fit`), weighting each point by its standard deviation.
+fitting (`scipy.optimize.curve_fit`), weighting each point by its 1σ Wilson standard deviation.
 
-The reported threshold corresponds to the value of $p_{\mathrm{th}}$ that best fits the
-scaling collapse over all simulated code distances and physical error rates.
+Because the polynomial collapse is only a near-threshold approximation, the fit is **windowed**:
+a first pass locates $p_{\mathrm{th}}^{(0)}$, then the final fit uses only points within a window
+$|p - p_{\mathrm{th}}^{(0)}| \le w$ (zero-error points are dropped). The fit is run with
+`absolute_sigma=True` so the covariance is a genuine statistical covariance, and a **parametric
+bootstrap** (resampling each point's error count from its Binomial law) gives a robust confidence
+interval on $p_{\mathrm{th}}$. `estimate_threshold` returns a `FitResult` carrying
+$p_{\mathrm{th}} \pm \delta$, $\nu \pm \delta$, the reduced $\chi^2$, and the window size; `main.py`
+also writes a **data-collapse figure** `collapse_<eta>.png` (all distances rescaled onto one curve)
+as visual evidence of the threshold.
+
+**For the full method and its mathematical background — the FSS scaling hypothesis, the statistical
+model, the fitting and uncertainty procedure, and the assumptions/limitations — see the dedicated
+[THRESHOLD.md](./src/THRESHOLD.md).**
 
 ## Running
 
@@ -195,13 +221,16 @@ python main.py [--outdir results] [--max-shots N] [--target-errors N] [--batch-s
 - `--max-shots` — cap on Monte Carlo shots per data point (default 2,000,000).
 - `--target-errors` — stop sampling a point once this many logical errors are observed (default 200; sampling is adaptive).
 - `--batch-size` — number of shots per sampling batch (default 100,000).
-- `--draw-threshold` — overlay the fitted CSS/XZZX thresholds as vertical lines on the plots.
+- `--draw-threshold` — overlay the fitted CSS/XZZX thresholds (vertical line + 1σ uncertainty band) on the plots.
 - `--diagram-only` — skip the simulation and only regenerate the circuit diagrams.
 
 It produces, in `--outdir`:
 
 - `result_<eta>.png` — logical-vs-physical error rate curves (log-scaled y-axis) for both
   codes across the simulated distances, with optional threshold lines.
+- `collapse_<eta>.png` — FSS data-collapse figure: every distance rescaled onto the axis
+  $x = (p - p_{\mathrm{th}})\,d^{1/\nu}$, with the fitted $p_{\mathrm{th}} \pm \delta$, $\nu$, and
+  reduced $\chi^2$ in each panel title (see [THRESHOLD.md](./src/THRESHOLD.md)).
 - `diagrams/<code>_detslice.svg` and `diagrams/<code>_timeline.svg` — Stim detector-slice
   and timeline visualizations of each code's circuit.
 
