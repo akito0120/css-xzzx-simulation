@@ -1,31 +1,34 @@
 import os
-from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
-from circuit_builder import CodeCapacityCircuitBuilder
-from simulation import estimate_logical_error_rate
 import numpy as np
-from typing import Dict, List
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from threshold import SamplePoint, estimate_threshold
 import argparse
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from typing import Dict, List
 from rich.progress import Progress, BarColumn, TextColumn
+
+from code_builder import QecCode, build_rotated_surface_code, build_xzzx_code
+from circuit_builder import CodeCapacityCircuitBuilder, CircuitLevelCircuitBuilder
+from simulation import estimate_logical_error_rate, wilson_interval
+from threshold import SamplePoint, estimate_threshold
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--outdir", default="results")
-    ap.add_argument("--threshold", action="store_true", default=False)
-    ap.add_argument("--shots", default=100_000)
-    ap.add_argument("--diagramonly", action="store_true", default=False)
+    ap.add_argument("--draw-threshold", action="store_true", default=False)
+    ap.add_argument("--max-shots", type=int, default=2_000_000)
+    ap.add_argument("--target-errors", type=int, default=200)
+    ap.add_argument("--batch-size", type=int, default=100_000)
+    ap.add_argument("--diagram-only", action="store_true", default=False)
     args = ap.parse_args()
 
-    etas = [0.5, 3, 10]
+    etas = [30, 100, float("inf")]
     code_types = ["css", "xzzx"]
-    distances = [3, 5, 7, 9, 11]
-    physical_error_rates = ps = list(np.linspace(0.05, 0.50, 12))
+    distances = [3, 5, 7]
+    physical_error_rates = ps = list(np.linspace(0.002, 0.04, 20))
 
     os.makedirs(f"{args.outdir}", exist_ok=True)
 
-    if args.diagramonly == False:
+    if args.diagram_only == False:
         with Progress(
             TextColumn("{task.description}"),
             BarColumn(bar_width=30),
@@ -40,9 +43,9 @@ if __name__ == "__main__":
                 css_sample_points: List[SamplePoint] = []
                 xzzx_sample_points: List[SamplePoint] = []
 
-                # Simulated logical errors: code type + distance -> logical errors
-                css_results: Dict[str, np.ndarray] = {}
-                xzzx_results: Dict[str, np.ndarray] = {}
+                # Simulated logical errors: code type + distance -> sample points
+                css_results: Dict[str, List[SamplePoint]] = {}
+                xzzx_results: Dict[str, List[SamplePoint]] = {}
 
                 # Simulation
                 for code_type in code_types:
@@ -50,35 +53,42 @@ if __name__ == "__main__":
 
                     for distance in distances:
                         p_error_task = progress.add_task(f"Simulating with d = {distance}", total=len(physical_error_rates))
-                        result: List[float] = []
+                        result: List[SamplePoint] = []
 
                         for physicall_error_rate in physical_error_rates:
 
                             code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
-                            circuit = CodeCapacityCircuitBuilder(code, physicall_error_rate, eta).build()
-                            p_L, sigma = estimate_logical_error_rate(circuit, shots=int(args.shots))
-
-                            result.append(p_L)
+                            circuit = CircuitLevelCircuitBuilder(code, physicall_error_rate, eta).build()
+                            p_L, sigma, errors, shots = estimate_logical_error_rate(
+                                circuit,
+                                max_shots=args.max_shots,
+                                target_errors=args.target_errors,
+                                batch_size=args.batch_size,
+                            )
 
                             sample_point = SamplePoint(
-                                eta=eta, 
-                                distance=distance, 
+                                eta=eta,
+                                distance=distance,
                                 physical_error_rate=physicall_error_rate,
                                 logical_error_rate=p_L,
-                                standard_deviation=sigma
+                                standard_deviation=sigma,
+                                logical_errors=errors,
+                                shots=shots
                             )
+
+                            result.append(sample_point)
 
                             if(code_type == "css"):
                                 css_sample_points.append(sample_point)
                             else:
                                 xzzx_sample_points.append(sample_point)
-                            
+
                             progress.update(p_error_task, advance=1)
 
                         if(code_type == "css"):
-                            css_results[f"{code_type}_d{distance}"] = np.array(result)
+                            css_results[f"{code_type}_d{distance}"] = result
                         else:
-                            xzzx_results[f"{code_type}_d{distance}"] = np.array(result)
+                            xzzx_results[f"{code_type}_d{distance}"] = result
                         
                         progress.update(distance_task, advance=1)
                         progress.remove_task(p_error_task)
@@ -100,13 +110,41 @@ if __name__ == "__main__":
                 fig, ax = plt.subplots(figsize=(12, 8), dpi=600)
 
                 # Draw logical error rates
-                for i, (label, y_data) in enumerate(css_results.items()):
-                    ax.plot(physical_error_rates, y_data, marker='o', label=label, color=css_colors[i])
-                for i, (label, y_data) in enumerate(xzzx_results.items()):
-                    ax.plot(physical_error_rates, y_data, marker='o', label=label, color=xzzx_colors[i])
+                def draw_curve(label, points: List[SamplePoint], color):
+                    ps_arr = np.array([sp.physical_error_rate for sp in points])
+                    errs = np.array([sp.logical_errors for sp in points])
+                    lows = np.array([wilson_interval(sp.logical_errors, sp.shots)[0] for sp in points])
+                    highs = np.array([wilson_interval(sp.logical_errors, sp.shots)[1] for sp in points])
+                    p_Ls = np.array([sp.logical_error_rate for sp in points])
+
+                    measured = errs > 0
+                    zero = ~measured
+
+                    # Measured points: connect with a line and show Wilson error bars
+                    if np.any(measured):
+                        ax.errorbar(
+                            ps_arr[measured], p_Ls[measured],
+                            yerr=[p_Ls[measured] - lows[measured], highs[measured] - p_Ls[measured]],
+                            marker='o', linestyle='-', capsize=3,
+                            label=label, color=color,
+                        )
+
+                    # Zero-failure points: plot the Wilson upper bound as a downward arrow
+                    if np.any(zero):
+                        ax.errorbar(
+                            ps_arr[zero], highs[zero],
+                            yerr=highs[zero] * 0.5, uplims=True,
+                            marker='', linestyle='none', color=color,
+                            label=None if np.any(measured) else label,
+                        )
+
+                for i, (label, points) in enumerate(css_results.items()):
+                    draw_curve(label, points, css_colors[i])
+                for i, (label, points) in enumerate(xzzx_results.items()):
+                    draw_curve(label, points, xzzx_colors[i])
 
                 # Draw thresholds
-                if(args.threshold):
+                if(args.draw_threshold):
                     ax.axvline(x = css_p_th, label=f"CSS p_th = {css_p_th:.3f}", color=css_colors[len(distances)], linestyle="--")
                     ax.axvline(x = xzzx_p_th, label=f"XZZX p_th = {xzzx_p_th:.3f}", color=xzzx_colors[len(distances)], linestyle="--")
 
