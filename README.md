@@ -21,7 +21,9 @@ css_xzzx_simulation/
 │   ├── code_builder.py            # Code definitions (rotated surface + XZZX)
 │   ├── circuit_builder/           # Noise-model circuit builders (see its own README)
 │   │   ├── README.md              # Detailed explanation of the three noise models
-│   │   ├── shared.py              # BaseCircuitBuilder + shared helpers
+│   │   ├── base.py                # BaseCircuitBuilder (shared plumbing)
+│   │   ├── noisy_measurement.py   # NoisyMeasurementCircuitBuilder (pheno + circuit-level)
+│   │   ├── shared.py              # Model-independent helpers (biased rates, CNOT schedule, CGATE)
 │   │   ├── code_capacity.py       # Code capacity model
 │   │   ├── phenomenological.py    # Phenomenological model
 │   │   └── circuit_level.py       # Circuit-level model
@@ -141,16 +143,19 @@ per step to exactly the qubits that are resting — see
 ## Decoding and Logical Error Rate
 
 For each configuration the built Stim circuit is converted to a detector error model
-(`decompose_errors=True`) and decoded with PyMatching's minimum-weight perfect matching.
-[simulation.py](./src/simulation.py) samples many shots, compares the decoded prediction
-against the true observable, and reports the logical error rate
+(`decompose_errors=True, approximate_disjoint_errors=True` — the latter is required for the
+correlated `PAULI_CHANNEL_2` two-qubit noise) and decoded with PyMatching's minimum-weight
+perfect matching. [simulation.py](./src/simulation.py) samples shots adaptively (stopping once
+`target_errors` logical errors are seen or `max_shots` is reached), compares the decoded
+prediction against the true observable, and reports the logical error rate
 
 $$
 p_L = \frac{\text{number of mismatched shots}}{\text{shots}}
 $$
 
-together with the Bernoulli standard deviation
-$\sigma = \sqrt{p_L (1 - p_L) / \text{shots}}$.
+together with an uncertainty given by the half-width of the **Wilson score interval** at $z = 1$
+(≈ 1σ, computed by `wilson_interval`), which is better-behaved than the plain Bernoulli
+$\sqrt{p_L (1 - p_L) / \text{shots}}$ near $p_L \rightarrow 0$.
 
 ## Threshold Estimation
 
@@ -183,13 +188,15 @@ scaling collapse over all simulated code distances and physical error rates.
 From the `src/` directory:
 
 ```bash
-python main.py [--outdir results] [--shots N] [--threshold] [--diagramonly]
+python main.py [--outdir results] [--max-shots N] [--target-errors N] [--batch-size N] [--draw-threshold] [--diagram-only]
 ```
 
 - `--outdir` — output directory for plots and diagrams (default `results`).
-- `--shots` — number of Monte Carlo shots per data point.
-- `--threshold` — overlay the fitted CSS/XZZX thresholds as vertical lines on the plots.
-- `--diagramonly` — skip the simulation and only regenerate the circuit diagrams.
+- `--max-shots` — cap on Monte Carlo shots per data point (default 2,000,000).
+- `--target-errors` — stop sampling a point once this many logical errors are observed (default 200; sampling is adaptive).
+- `--batch-size` — number of shots per sampling batch (default 100,000).
+- `--draw-threshold` — overlay the fitted CSS/XZZX thresholds as vertical lines on the plots.
+- `--diagram-only` — skip the simulation and only regenerate the circuit diagrams.
 
 It produces, in `--outdir`:
 
