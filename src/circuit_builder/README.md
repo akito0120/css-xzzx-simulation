@@ -435,11 +435,7 @@ stabilizer's legs to time steps by their lattice offset (`STEP_OF_OFFSET`). Two 
 - **Distance preservation.** A careless gate order lets a single mid-round ancilla fault propagate into a
   weight-2 *hook error* aligned with a logical operator, which would halve the effective distance
   ($d \to \lceil (d{+}1)/2 \rceil$). The chosen row-major order keeps hook errors off the logical-X
-  direction, so the effective fault distance stays exactly $d$. This order was picked by **exhaustive
-  search** over all step tables, scored with Stim's `shortest_graphlike_error` (and
-  `search_for_undetectable_logical_errors` for the ungraphlike check) across both codes, all distances,
-  and every bias including $\eta=\infty$ — the high-bias regime where *fragile boundaries* (Higgott
-  *et al.*, [arXiv:2203.04948](https://arxiv.org/abs/2203.04948)) could otherwise reduce the distance.
+  direction, so the effective fault distance stays exactly $d$.
 
 A single common order works here because the experiment measures **only the logical-X observable**; a
 two-sided memory (X *and* Z) would need the standard X/Z-transposed schedule instead (noted in the

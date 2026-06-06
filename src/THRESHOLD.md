@@ -45,7 +45,7 @@ they move with the bias $\eta$.
 Near a continuous transition the only relevant length is the **correlation length**
 
 $$
-\xi(p) \sim |p - p_{\mathrm{th}}|^{-\nu},
+\xi(p) \sim |p - p_{\mathrm{th}}|^{-\nu}
 $$
 
 which diverges at the critical point with a **critical exponent** $\nu$. Universality says that a
@@ -54,13 +54,13 @@ ratio $d / \xi \sim (p - p_{\mathrm{th}})\, d^{1/\nu}$. Applied to the logical e
 the **finite-size-scaling ansatz**
 
 $$
-p_L(p, d) = F\!\big( \underbrace{(p - p_{\mathrm{th}})\, d^{1/\nu}}_{x} \big),
+p_L(p, d) = F\big( \underbrace{(p - p_{\mathrm{th}}) d^{1/\nu}}_{x} \big)
 $$
 
 with a single **universal scaling function** $F$ shared by all distances. Two consequences drive
 the whole method:
 
-- **Collapse.** If we plot $p_L$ against the rescaled variable $x = (p - p_{\mathrm{th}})\,d^{1/\nu}$
+- **Collapse.** If we plot $p_L$ against the rescaled variable $x = (p - p_{\mathrm{th}}) d^{1/\nu}$
   using the correct $(p_{\mathrm{th}}, \nu)$, the points from *every* distance fall on the *same*
   curve $F(x)$. A good collapse is the qualitative evidence that the threshold is real (this is the
   `collapse_<eta>.png` figure).
@@ -69,7 +69,7 @@ the whole method:
 
 $\nu$ is a by-product of the fit, not the target, but it is worth reporting: for the 2D surface code
 under independent noise it sits around $\nu \approx 1.5$ (random-bond Ising / percolation
-universality), so a fitted $\nu$ wildly outside $\sim 1$–$1.5$ is a warning that the data or the fit
+universality), so a fitted $\nu$ wildly outside $\sim 1$ – $1.5$ is a warning that the data or the fit
 window are poor.
 
 ---
@@ -160,7 +160,7 @@ minimized by `scipy.optimize.curve_fit`, with each residual weighted by the poin
 $\sigma_i$.
 
 **(2) Window and refit (pass 2).** Keep only points within
-$|p - p_{\mathrm{th}}^{(0)}| \le w$, with half-width $w = \texttt{window\_frac}\cdot(p_{\max}-p_{\min})$,
+$|p - p_{\mathrm{th}}^{(0)}| \le w$, with half-width $w = \text{window\_frac}\cdot(p_{\max}-p_{\min})$,
 and refit. Restricting to the near-threshold window is what makes the quadratic model legitimate
 (§3). The refit passes **`absolute_sigma=True`**, which tells `curve_fit` to treat the $\sigma_i$ as
 *real* uncertainties so that the returned covariance `pcov` is a genuine statistical covariance —
@@ -198,8 +198,7 @@ The reported `p_th_err` is the **more conservative** (larger) of the covariance 
 estimates. All of this is returned in a `FitResult`:
 
 ```text
-FitResult(p_th, p_th_err, p_th_err_cov, p_th_err_boot, p_th_ci,
-          nu, nu_err, chi2_red, n_points, window, popt, pcov)
+FitResult(p_th, p_th_err, p_th_err_cov, p_th_err_boot, p_th_ci, nu, nu_err, chi2_red, n_points, window, popt, pcov)
 ```
 
 [main.py](./main.py) uses it to label the threshold line as $p_{\mathrm{th}} \pm \delta$ with a 1σ
@@ -211,7 +210,7 @@ $\chi^2_{\mathrm{red}}$.
 ## 6. Reading the data-collapse figure
 
 `collapse_<eta>.png` (built by `draw_collapse` in [main.py](./main.py)) is the primary validation
-plot. Each measured point is rescaled to $x = (p - p_{\mathrm{th}})\,d^{1/\nu}$ and plotted against
+plot. Each measured point is rescaled to $x = (p - p_{\mathrm{th}})d^{1/\nu}$ and plotted against
 $p_L$, with the fitted parabola $a + bx + cx^2$ overlaid:
 
 - **Good threshold:** points from all distances $d$ land on the single overlaid curve (a clean
