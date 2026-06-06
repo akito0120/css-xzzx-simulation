@@ -10,6 +10,8 @@ class SamplePoint:
     physical_error_rate: float
     logical_error_rate: float
     standard_deviation: float
+    logical_errors: int
+    shots: int
 
 def fss(X, p_th, nu, a, b, c):
     # Approximation of the scaling function by a second-order polynomial
@@ -25,6 +27,9 @@ def estimate_threshold(sample_points: List[SamplePoint]):
     p_Ls = np.array([sample.logical_error_rate for sample in sample_points])
     sigs = np.array([sample.standard_deviation for sample in sample_points])
 
-    popt, pcov = curve_fit(fss, (ps, ds), p_Ls, sigma=sigs)
+    # Initial guess (p_th, nu, a, b, c)
+    p0 = [float(np.median(ps)), 1.5, float(np.median(p_Ls)), 0.0, 0.0]
+
+    popt, pcov = curve_fit(fss, (ps, ds), p_Ls, sigma=sigs, p0=p0, maxfev=20000)
     p_th = popt[0]
     return p_th
