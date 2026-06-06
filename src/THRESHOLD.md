@@ -81,7 +81,7 @@ Preskill, Harrington's thesis) we approximate it **near the threshold** by a low
 expansion in $x$ — here a quadratic:
 
 $$
-F(x) \approx a + b\,x + c\,x^2 .
+F(x) \approx a + b\,x + c\,x^2
 $$
 
 This is implemented as `fss(X, p_th, nu, a, b, c)` in [threshold.py](./threshold.py), with five free
@@ -108,16 +108,16 @@ Each `SamplePoint` is a Monte-Carlo estimate. For a configuration $(p, d)$ we ta
 The failures are independent Bernoulli trials, so
 
 $$
-k \sim \mathrm{Binomial}(N, p_L), \qquad \hat{p}_L = \frac{k}{N}.
+k \sim \mathrm{Binomial}(N, p_L), \qquad \hat{p}_L = \frac{k}{N}
 $$
 
 Sampling is **adaptive**: shots are drawn in batches until either $k$ reaches `target_errors` or $N$
 reaches `max_shots`. Stopping on a fixed error count keeps the *relative* statistical uncertainty
-roughly constant (≈ $1/\sqrt{k}$) across points spanning orders of magnitude in $p_L$.
+roughly constant ($\approx 1/\sqrt{k}$) across points spanning orders of magnitude in $p_L$.
 
 ### Wilson score interval
 
-The naive Bernoulli error $\sqrt{\hat{p}_L(1-\hat{p}_L)/N}$ collapses to zero when $k = 0$ and is
+The naive Bernoulli error $\sqrt{\hat{p}_L (1- \hat{p}_L) / N}$ collapses to zero when $k = 0$ and is
 badly miscalibrated for small $p_L$ — exactly the deep-sub-threshold regime that dominates this
 sweep. We instead use the **Wilson score interval** (`wilson_interval`), which inverts the binomial
 score test. For $z$ standard deviations and $\hat{p} = k/N$:
@@ -160,7 +160,7 @@ minimized by `scipy.optimize.curve_fit`, with each residual weighted by the poin
 $\sigma_i$.
 
 **(2) Window and refit (pass 2).** Keep only points within
-$|p - p_{\mathrm{th}}^{(0)}| \le w$, with half-width $w = \text{window\_frac}\cdot(p_{\max}-p_{\min})$,
+$|p - p_{\mathrm{th}}^{(0)}| \le w$, with half-width $`w = \text{window\_frac} \cdot (p_{\max} - p_{\min})`$,
 and refit. Restricting to the near-threshold window is what makes the quadratic model legitimate
 (§3). The refit passes **`absolute_sigma=True`**, which tells `curve_fit` to treat the $\sigma_i$ as
 *real* uncertainties so that the returned covariance `pcov` is a genuine statistical covariance —
