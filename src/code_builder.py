@@ -5,14 +5,14 @@ Coord = Tuple[int, int]
 
 @dataclass(frozen=True)
 class QecCode:
-    distance: int # Code distance
-    name: str # Code name
-    data_qubits: Dict[Coord, int] # Data qubit coordinate on lattice -> qubit index
-    ancilla_qubits: Dict[Coord, int] # Ancilla qubit coordinate on lattice -> qubit index
-    stabilizers: Dict[Coord, Dict[Coord, str]] # Ancilla coordinate -> (data qubit coordinate -> X/Z)
-    logical_x: Dict[Coord, str] # Logical X operator
-    logical_z: Dict[Coord, str] # Logical Z operator
-    hset: set = field(default_factory=set) # Set of data qubit coords that are Hadamard-deformed relative to the CSS
+    distance: int                               # Code distance
+    name: str                                   # Code name
+    data_qubits: Dict[Coord, int]               # Data qubit coordinate on lattice -> qubit index
+    ancilla_qubits: Dict[Coord, int]            # Ancilla qubit coordinate on lattice -> qubit index
+    stabilizers: Dict[Coord, Dict[Coord, str]]  # Ancilla coordinate -> (data qubit coordinate -> X/Z)
+    logical_x: Dict[Coord, str]                 # Logical X operator
+    logical_z: Dict[Coord, str]                 # Logical Z operator
+    hset: set = field(default_factory=set)      # Set of data qubit coords that are Hadamard-deformed relative to the CSS
 
 def build_rotated_surface_code(distance: int) -> QecCode:
     # Data qubits sit at (2c+1, 2r+1) for r,c in 0..d-1.
