@@ -16,11 +16,15 @@ minimum-weight perfect matching decoding.
 ```
 css_xzzx_simulation/
 ├── README.md                      # This file
+├── docs/
+│   ├── CIRCUIT_BUILDER.md         # Detailed explanation of the three noise models
+│   └── THRESHOLD.md               # Threshold estimation method and mathematical background
 ├── src/
-│   ├── main.py                    # Entry point: sweep, decode, FSS fit, plot, diagrams
+│   ├── main.py                    # Entry point: sweep, save samples.csv (or replay via --from-data), plot, diagrams
+│   ├── config.py                  # Sweep configuration (eta, distance, physical-error-rate grids)
 │   ├── code_builder.py            # Code definitions (rotated surface + XZZX)
-│   ├── circuit_builder/           # Noise-model circuit builders (see its own README)
-│   │   ├── README.md              # Detailed explanation of the three noise models
+│   ├── circuit_builder/           # Noise-model circuit builders (see docs/CIRCUIT_BUILDER.md)
+│   │   ├── __init__.py            # Package exports
 │   │   ├── base.py                # BaseCircuitBuilder (shared plumbing)
 │   │   ├── noisy_measurement.py   # NoisyMeasurementCircuitBuilder (pheno + circuit-level)
 │   │   ├── shared.py              # Model-independent helpers (biased rates, CNOT schedule, CGATE)
@@ -28,8 +32,12 @@ css_xzzx_simulation/
 │   │   ├── phenomenological.py    # Phenomenological model
 │   │   └── circuit_level.py       # Circuit-level model
 │   ├── simulation.py              # Monte Carlo logical error rate estimation
-│   └── threshold.py               # Finite-size scaling (FSS) threshold fit
-└── results/                       # Generated plots and circuit diagrams (git-ignored)
+│   ├── threshold.py               # Finite-size scaling (FSS) threshold fit
+│   └── visualization.py           # Result/collapse plots and circuit diagrams
+└── results/                       # Generated outputs (git-ignored)
+    ├── samples.csv                # Raw Monte Carlo data (one row per (code, eta, distance, p))
+    ├── figures/                   # result_<eta>.png and collapse_<eta>.png
+    └── diagrams/                  # Stim detector-slice and timeline SVGs
 ```
 
 ## The Codes
@@ -94,7 +102,7 @@ $\eta = P(\{IZ,ZI,ZZ\})/P(\text{rest})$, generalizing the single-qubit $\eta = p
 $\eta\to\infty$ it concentrates uniformly on $\{IZ, ZI, ZZ\}$ (implemented by `biased_two_qubit_rates(p, eta)`).
 This uniform biasing is what lets XZZX's advantage keep growing with $\eta$ (rather than saturating, as it
 would under an unbiased/depolarizing CX on two-level qubits). See
-[circuit_builder/README.md](./src/circuit_builder/README.md) for the full convention and limits.
+[CIRCUIT_BUILDER.md](./docs/CIRCUIT_BUILDER.md) for the full convention and limits.
 
 ### Noise models
 
@@ -109,7 +117,7 @@ Three noise models are provided as separate circuit builders, all extending a co
 
 For a full explanation of all three models, the shared building blocks, and the design
 rationale behind them, see the dedicated
-[circuit_builder/README.md](./src/circuit_builder/README.md).
+[CIRCUIT_BUILDER.md](./docs/CIRCUIT_BUILDER.md).
 
 ## Memory Basis
 
@@ -128,7 +136,7 @@ and the XZZX checks. Detectors compare each round to the previous one. Code-capa
 phenomenological use a perfect reference round 0 to make the detectors deterministic; the
 **circuit-level** model instead keeps round 0 noisy and closes both time boundaries with
 explicit boundary detectors (initial + final) plus a reset and readout error, for a faithful
-all-operations-noisy circuit (see [circuit_builder/README.md](./src/circuit_builder/README.md) §4).
+all-operations-noisy circuit (see [CIRCUIT_BUILDER.md](./docs/CIRCUIT_BUILDER.md) §4).
 
 For the **circuit-level** model the per-leg controlled gates are not applied ancilla-by-ancilla
 but scheduled into **4 parallel time steps** (`build_cnot_schedule` in
@@ -137,7 +145,7 @@ assigned to steps by their lattice offset so that no data qubit is engaged by tw
 the same step, and so that the effective fault distance stays equal to $d$. This time-step
 structure is what lets the idle noise be attached
 per step to exactly the qubits that are resting — see
-[circuit_builder/README.md](./src/circuit_builder/README.md) §4.
+[CIRCUIT_BUILDER.md](./docs/CIRCUIT_BUILDER.md) §4.
 
 ## Decoding and Logical Error Rate
 
@@ -206,30 +214,32 @@ as visual evidence of the threshold.
 
 **For the full method and its mathematical background — the FSS scaling hypothesis, the statistical
 model, the fitting and uncertainty procedure, and the assumptions/limitations — see the dedicated
-[THRESHOLD.md](./src/THRESHOLD.md).**
+[THRESHOLD.md](./docs/THRESHOLD.md).**
 
 ## Running
 
 From the `src/` directory:
 
 ```bash
-python main.py [--outdir results] [--max-shots N] [--target-errors N] [--batch-size N] [--draw-threshold] [--diagram-only]
+python main.py [--outdir results] [--max-shots N] [--target-errors N] [--batch-size N] [--seed S] [--from-data samples.csv]
 ```
 
-- `--outdir` — output directory for plots and diagrams (default `results`).
-- `--max-shots` — cap on Monte Carlo shots per data point (default 2,000,000).
-- `--target-errors` — stop sampling a point once this many logical errors are observed (default 200; sampling is adaptive).
-- `--batch-size` — number of shots per sampling batch (default 100,000).
-- `--draw-threshold` — overlay the fitted CSS/XZZX thresholds (vertical line + 1σ uncertainty band) on the plots.
-- `--diagram-only` — skip the simulation and only regenerate the circuit diagrams.
+- `--outdir` — output directory for the samples, plots, and diagrams (default `results`).
+- `--max-shots` — cap on Monte Carlo shots per data point.
+- `--target-errors` — stop sampling a point once this many logical errors are observed (sampling is adaptive).
+- `--batch-size` — number of shots per sampling batch.
+- `--seed` — base RNG seed for the sweep, recorded per row in `samples.csv` for reproducibility.
+- `--from-data` — path to a previously saved `samples.csv`; when given, the sweep is skipped and the figures are re-rendered from that data (the diagrams are still regenerated).
 
-It produces, in `--outdir`:
+It produces, under `--outdir`:
 
-- `result_<eta>.png` — logical-vs-physical error rate curves (log-scaled y-axis) for both
-  codes across the simulated distances, with optional threshold lines.
-- `collapse_<eta>.png` — FSS data-collapse figure: every distance rescaled onto the axis
+- `samples.csv` — the raw Monte Carlo data, one row per `(code, eta, distance, p)` with its
+  logical error count, shots, and seed (the input to `--from-data`).
+- `figures/result_<eta>.png` — logical-vs-physical error rate curves (log-scaled y-axis) for both
+  codes across the simulated distances, with the fitted threshold line and 1σ uncertainty band overlaid.
+- `figures/collapse_<eta>.png` — FSS data-collapse figure: every distance rescaled onto the axis
   $x = (p - p_{\mathrm{th}})\,d^{1/\nu}$, with the fitted $p_{\mathrm{th}} \pm \delta$, $\nu$, and
-  reduced $\chi^2$ in each panel title (see [THRESHOLD.md](./src/THRESHOLD.md)).
+  reduced $\chi^2$ in each panel title (see [THRESHOLD.md](./docs/THRESHOLD.md)).
 - `diagrams/<code>_detslice.svg` and `diagrams/<code>_timeline.svg` — Stim detector-slice
   and timeline visualizations of each code's circuit.
 

@@ -4,14 +4,14 @@ How the CSS rotated surface code / XZZX code are assembled into Stim circuits un
 noise models (code capacity / phenomenological / circuit-level), and the design rationale behind each.
 
 Files covered:
-- [base.py](./base.py) — common base class `BaseCircuitBuilder`
-- [shared.py](./shared.py) — model-independent helpers (`biased_pauli_rates`, `biased_two_qubit_rates`, `build_cnot_schedule`, `CGATE`)
-- [noisy_measurement.py](./noisy_measurement.py) — intermediate class `NoisyMeasurementCircuitBuilder` (phenomenological + circuit-level)
-- [code_capacity.py](./code_capacity.py) — code capacity model
-- [phenomenological.py](./phenomenological.py) — phenomenological model
-- [circuit_level.py](./circuit_level.py) — circuit-level model
+- [base.py](../src/circuit_builder/base.py) — common base class `BaseCircuitBuilder`
+- [shared.py](../src/circuit_builder/shared.py) — model-independent helpers (`biased_pauli_rates`, `biased_two_qubit_rates`, `build_cnot_schedule`, `CGATE`)
+- [noisy_measurement.py](../src/circuit_builder/noisy_measurement.py) — intermediate class `NoisyMeasurementCircuitBuilder` (phenomenological + circuit-level)
+- [code_capacity.py](../src/circuit_builder/code_capacity.py) — code capacity model
+- [phenomenological.py](../src/circuit_builder/phenomenological.py) — phenomenological model
+- [circuit_level.py](../src/circuit_builder/circuit_level.py) — circuit-level model
 
-The codes themselves are defined in [code_builder.py](../code_builder.py).
+The codes themselves are defined in [code_builder.py](../src/code_builder.py).
 
 ## 0. The Big Picture
 
@@ -55,8 +55,8 @@ The "why" shared by all three models:
 
 ## 1. Shared Building Blocks (BaseCircuitBuilder)
 
-The common methods in [base.py](./base.py). (The model-independent helpers `biased_pauli_rates` and
-`CGATE` live in [shared.py](./shared.py).)
+The common methods in [base.py](../src/circuit_builder/base.py). (The model-independent helpers `biased_pauli_rates` and
+`CGATE` live in [shared.py](../src/circuit_builder/shared.py).)
 
 ### 1.1 Measurement-record relative indexing — `rel`
 
@@ -87,7 +87,7 @@ self.circuit.append("R",  [idx for _, idx in z_basis])   # |0> on hset (Z basis)
 
 - **CSS code**: `hset` is empty → every data qubit is reset with `RX` into $\ket{+}$ (pure X memory).
 - **XZZX code**: the qubits in `hset` (a checkerboard subset, see `build_xzzx_code` in
-  [code_builder.py](../code_builder.py)) are reset with `R` into $\ket{0}$ (Z basis); the rest with `RX`.
+  [code_builder.py](../src/code_builder.py)) are reset with `R` into $\ket{0}$ (Z basis); the rest with `RX`.
 
 Why: the XZZX code is the **Hadamard-deformed** version of the CSS code (the `deform` function deforms its
 stabilizers and logical operators). Rather than realize that deformation with explicit H gates, we simply
@@ -119,7 +119,7 @@ Why this measures the stabilizer:
 put the ancilla in $\ket{+}$ (an X eigenstate) and apply controlled Paulis targeting the data; the ancilla's
 phase flips according to the eigenvalue of the stabilizer operator $S$. Measuring the ancilla in the X
 basis (`MX`) then yields the value of $S$. `CGATE = {"X":"CX","Y":"CY","Z":"CZ"}` selects the controlled
-gate matching each leg's Pauli type ([shared.py](./shared.py)).
+gate matching each leg's Pauli type ([shared.py](../src/circuit_builder/shared.py)).
 
 The `flip` argument is the **injection point for measurement noise**. Switching it on/off is all it takes
 to toggle between "perfect" and "noisy" measurements, which is why **code-capacity and phenomenological**
@@ -179,7 +179,7 @@ self.define_observable(data_record)
 
 ## 2. Code Capacity Model
 
-[code_capacity.py](./code_capacity.py)
+[code_capacity.py](../src/circuit_builder/code_capacity.py)
 
 ### Structure
 
@@ -216,7 +216,7 @@ detectors that fire in round 1 are exactly the traces of the errors introduced b
 
 ## 3. Phenomenological Model
 
-[phenomenological.py](./phenomenological.py)
+[phenomenological.py](../src/circuit_builder/phenomenological.py)
 
 ### Structure
 
@@ -241,7 +241,7 @@ be trusted:
 
 - We must run **multiple rounds** (a single measurement result cannot distinguish a data error from a
   measurement error). The default round count is the code distance `code.distance`
-  (the `__init__` in [phenomenological.py](./phenomenological.py)).
+  (the `__init__` in [phenomenological.py](../src/circuit_builder/phenomenological.py)).
   This is the standard choice of "give the time direction the same distance-d redundancy."
 - `data_round_noise()` injects the **bulk data noise**: one biased `PAULI_CHANNEL_1` over *all* data
   qubits per round. At the phenomenological level we do not model individual gates, so every source of
@@ -282,7 +282,7 @@ detectors — see §2.)
 
 ## 4. Circuit-Level Model
 
-[circuit_level.py](./circuit_level.py)
+[circuit_level.py](../src/circuit_builder/circuit_level.py)
 
 ### Structure (owns its model-specific parts, extends `NoisyMeasurementCircuitBuilder`)
 
@@ -385,7 +385,7 @@ $\ket{+}$ preparation), and the two-qubit gate uses a **biased correlated two-qu
 
 The two-qubit gate error is a genuine **correlated** channel (each gate fault produces a weight-2 error at
 $O(p)$, as in standard circuit-level models), built by `biased_two_qubit_rates` in
-[shared.py](./shared.py) next to `biased_pauli_rates`. It follows the **bias-preserving-gate** convention of
+[shared.py](../src/circuit_builder/shared.py) next to `biased_pauli_rates`. It follows the **bias-preserving-gate** convention of
 the XZZX biased-noise literature (Darmawan *et al.*, [arXiv:2104.09539](https://arxiv.org/abs/2104.09539),
 XZZX + Kerr-cat qubits): the 15 non-identity two-qubit Paulis are
 **partitioned** into a high-rate Z-subgroup $H=\{IZ, ZI, ZZ\}$ and the 12 remaining low-rate errors, with
@@ -410,7 +410,7 @@ reintroduce $X/Y$ noise every round and **cap** the advantage (the threshold wou
 as $\eta\to\infty$). To model the hybrid instead, branch on the leg's Pauli and emit `DEPOLARIZE2(p)` for the
 CX legs. These codes only ever emit CX and CZ (stabilizers are X/Z only), so CY never arises.
 (Building the decoder DEM from `PAULI_CHANNEL_2` requires `approximate_disjoint_errors=True`, which
-[simulation.py](../simulation.py) passes.)
+[simulation.py](../src/simulation.py) passes.)
 
 **Why idle noise, not a bulk channel.**
 In a real device the data qubits are not actually idle during a round: they are repeatedly entangled by
@@ -425,7 +425,7 @@ adjacent identical noise instructions on the same targets it may fuse them in th
 that is purely cosmetic.)
 
 **The CNOT schedule and distance preservation.**
-The four steps come from `build_cnot_schedule` ([shared.py](./shared.py)), which assigns every
+The four steps come from `build_cnot_schedule` ([shared.py](../src/circuit_builder/shared.py)), which assigns every
 stabilizer's legs to time steps by their lattice offset (`STEP_OF_OFFSET`). Two properties matter:
 
 - **No double-booking.** Within a step, no data qubit is targeted by two ancillas — a physical
@@ -434,12 +434,12 @@ stabilizer's legs to time steps by their lattice offset (`STEP_OF_OFFSET`). Two 
   ancillas sit at four distinct offsets, hence four distinct steps).
 - **Distance preservation.** A careless gate order lets a single mid-round ancilla fault propagate into a
   weight-2 *hook error* aligned with a logical operator, which would halve the effective distance
-  ($d \to \lceil (d{+}1)/2 \rceil$). The chosen row-major order keeps hook errors off the logical-X
-  direction, so the effective fault distance stays exactly $d$.
+  ($d \to \lceil (d{+}1)/2 \rceil$). The fixed offset-to-step assignment (`STEP_OF_OFFSET`) keeps hook
+  errors off the logical-X direction, so the effective fault distance stays exactly $d$.
 
 A single common order works here because the experiment measures **only the logical-X observable**; a
 two-sided memory (X *and* Z) would need the standard X/Z-transposed schedule instead (noted in the
-[shared.py](./shared.py) comment).
+[shared.py](../src/circuit_builder/shared.py) comment).
 
 - **Every round, including round 0, is noisy** — `syndrome_meas` injects its noise unconditionally.　The bottom boundary is instead closed by
   `initial_boundary_detectors` together with the `X_ERROR(p)` reset error, so reset / round-0 faults are

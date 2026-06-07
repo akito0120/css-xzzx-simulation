@@ -5,12 +5,12 @@ logical-error-rate data, the **finite-size-scaling (FSS)** hypothesis behind it,
 model of the data, the fitting and uncertainty procedure, and the assumptions and limitations.
 
 Files covered:
-- [threshold.py](./threshold.py) — `SamplePoint`, `FitResult`, `fss`, `estimate_threshold`
-- [simulation.py](./simulation.py) — `estimate_logical_error_rate`, `wilson_interval`
-- [main.py](./main.py) — sweep, threshold call, `result_<eta>.png` / `collapse_<eta>.png`
+- [threshold.py](../src/threshold.py) — `SamplePoint`, `FitResult`, `fss`, `estimate_threshold`
+- [simulation.py](../src/simulation.py) — `estimate_logical_error_rate`, `wilson_interval`
+- [main.py](../src/main.py) — sweep, threshold call, `result_<eta>.png` / `collapse_<eta>.png`
 
 This document is the companion to the project [README.md](../README.md) "Threshold Estimation"
-section and to [circuit_builder/README.md](./circuit_builder/README.md) (how the circuits are built).
+section and to [CIRCUIT_BUILDER.md](./CIRCUIT_BUILDER.md) (how the circuits are built).
 Symbols ($p$, $p_{\mathrm{th}}$, $d$, $\nu$, $p_L$) match those used there and in the code.
 
 ---
@@ -84,7 +84,7 @@ $$
 F(x) \approx a + b\,x + c\,x^2
 $$
 
-This is implemented as `fss(X, p_th, nu, a, b, c)` in [threshold.py](./threshold.py), with five free
+This is implemented as `fss(X, p_th, nu, a, b, c)` in [threshold.py](../src/threshold.py), with five free
 parameters $(p_{\mathrm{th}}, \nu, a, b, c)$.
 
 The Taylor truncation is **only valid for small $|x|$**, i.e. close to the crossing. Far below
@@ -104,7 +104,7 @@ be fed near-threshold data.
 ## 4. The statistical model of each data point
 
 Each `SamplePoint` is a Monte-Carlo estimate. For a configuration $(p, d)$ we take $N$ shots
-([simulation.py](./simulation.py), `estimate_logical_error_rate`) and count $k$ logical failures.
+([simulation.py](../src/simulation.py), `estimate_logical_error_rate`) and count $k$ logical failures.
 The failures are independent Bernoulli trials, so
 
 $$
@@ -129,7 +129,7 @@ $$
 
 It stays inside $[0,1]$, gives a sensible non-degenerate bound even at $k = 0$, and is well-behaved
 as $p_L \to 0$. We take the **half-width at $z = 1$** as the 1σ uncertainty $\sigma$ stored on each
-`SamplePoint`; the *same* 1σ interval is drawn as the plot error bars in [main.py](./main.py), so the
+`SamplePoint`; the *same* 1σ interval is drawn as the plot error bars in [main.py](../src/main.py), so the
 figure and the fit weights use one consistent convention. Points with $k = 0$ (no failures observed)
 carry no usable $\sigma$ for a two-sided fit and are excluded from the FSS fit (§5); in the
 `result_<eta>.png` plot they are instead shown as Wilson upper-bound arrows.
@@ -142,7 +142,7 @@ and the threshold.
 
 ## 5. Fitting procedure and uncertainty on the threshold
 
-`estimate_threshold(sample_points, window_frac, n_boot, seed)` in [threshold.py](./threshold.py)
+`estimate_threshold(sample_points, window_frac, n_boot, seed)` in [threshold.py](../src/threshold.py)
 performs the following.
 
 **(0) Drop zero-error points.** Points with $k = 0$ are removed (§4): the collapse ansatz is invalid
@@ -201,7 +201,7 @@ estimates. All of this is returned in a `FitResult`:
 FitResult(p_th, p_th_err, p_th_err_cov, p_th_err_boot, p_th_ci, nu, nu_err, chi2_red, n_points, window, popt, pcov)
 ```
 
-[main.py](./main.py) uses it to label the threshold line as $p_{\mathrm{th}} \pm \delta$ with a 1σ
+[main.py](../src/main.py) uses it to label the threshold line as $p_{\mathrm{th}} \pm \delta$ with a 1σ
 band (`axvspan`), and to title each panel of the collapse figure with $p_{\mathrm{th}}$, $\nu$, and
 $\chi^2_{\mathrm{red}}$.
 
@@ -209,7 +209,7 @@ $\chi^2_{\mathrm{red}}$.
 
 ## 6. Reading the data-collapse figure
 
-`collapse_<eta>.png` (built by `draw_collapse` in [main.py](./main.py)) is the primary validation
+`collapse_<eta>.png` (built by `draw_collapse` in [main.py](../src/main.py)) is the primary validation
 plot. Each measured point is rescaled to $x = (p - p_{\mathrm{th}})d^{1/\nu}$ and plotted against
 $p_L$, with the fitted parabola $a + bx + cx^2$ overlaid:
 
@@ -227,22 +227,22 @@ $p_{\mathrm{th}} \pm \delta$ rather than taking it on faith.
 ## 7. Assumptions and limitations
 
 - **X-memory threshold only.** The experiment holds and reads out a single logical-X observable
-  (see [circuit_builder/README.md](./circuit_builder/README.md) §0). The quoted $p_{\mathrm{th}}$ is
+  (see [CIRCUIT_BUILDER.md](./CIRCUIT_BUILDER.md) §0). The quoted $p_{\mathrm{th}}$ is
   the X-memory threshold under Z-biased noise — the regime where XZZX is expected to win — not a
   full (X *and* Z) code threshold.
 - **Decoder is MWPM.** Thresholds are decoder-dependent; MWPM under correlated / high-bias noise is
   sub-optimal, so the values are a lower bound for what a correlated-matching or BP+OSD decoder would
   give. See the project [README.md](../README.md) "Decoder choice and its limitations".
-- **Small distances.** The sweep uses $d \in \{3, 5, 7\}$. Small distances carry large finite-size
-  corrections beyond the leading FSS form, so $p_{\mathrm{th}}$ has a real systematic on top of the
-  reported statistical error. Adding $d = 9, 11$ (the diagram code already builds them) and sampling
-  more densely near the crossing are the most effective ways to shrink both the statistical and the
-  systematic error — watch `n_points` and $\chi^2_{\mathrm{red}}$ to know when the window is starved.
+- **Small distances.** The sweep uses a handful of small code distances. Small distances carry large
+  finite-size corrections beyond the leading FSS form, so $p_{\mathrm{th}}$ has a real systematic on
+  top of the reported statistical error. Adding larger distances and sampling more densely near the
+  crossing are the most effective ways to shrink both the statistical and the systematic error —
+  watch `n_points` and $\chi^2_{\mathrm{red}}$ to know when the window is starved.
 - **Quadratic, bias-agnostic collapse.** Only the leading quadratic term of $F$ is kept and the same
   form is used for every $\eta$ (the `# TODO` in `fss`). This is sufficient to locate the threshold
   for the CSS-vs-XZZX comparison but is not a high-precision determination of $p_{\mathrm{th}}$ or of
   the critical exponent $\nu$.
 - **Per-model $p$-axis.** Thresholds from different noise models live on different $p$-axes and must
-  not be compared at the same numeric $p$ (see [circuit_builder/README.md](./circuit_builder/README.md)
+  not be compared at the same numeric $p$ (see [CIRCUIT_BUILDER.md](./CIRCUIT_BUILDER.md)
   §5, "On the meaning of `p` across models"). The comparison that *is* valid is CSS vs XZZX within one
   model and one $\eta$.
