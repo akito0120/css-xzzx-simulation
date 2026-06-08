@@ -147,6 +147,51 @@ def render_eta(eta: float, pairs: List[Tuple[str, SamplePoint]], outdir: str) ->
         (xzzx_results, xzzx_fit, xzzx_colors, "XZZX")
     )
 
+def render_threshold(pairs: List[Tuple[str, SamplePoint]], outdir: str):
+    os.makedirs(outdir, exist_ok=True)
+    etas = sorted({sp.eta for _, sp in pairs})
+
+    # (eta, code) -> (eta, threshold, threshold error)
+    thresholds: Dict[str, List[Tuple[float, float, float]]] = {"css": [], "xzzx": []}
+    for eta in etas:
+        eta_pairs = [(ct, sp) for ct, sp in pairs if sp.eta == eta]
+        for code_type in ("css", "xzzx"):
+            _, points = group_results(eta_pairs, code_type)
+            if not points:
+                continue
+            fit = estimate_threshold(points)
+            thresholds[code_type].append((eta, fit.p_th, fit.p_th_err))
+
+    # Place inf one decade past the largest finite eta
+    finite = [e for e in etas if e != float("inf")]
+    inf_x = (max(finite) * 10.0) if finite else 1.0
+    eta_to_x = lambda e: inf_x if e == float("inf") else e
+
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=600)
+    styles = {"css": ("tab:blue", "CSS"), "xzzx": ("tab:red", "XZZX")}
+
+    for code_type, pts in thresholds.items():
+        if not pts:
+            continue
+        color, label = styles[code_type]
+        xs = [eta_to_x(e) for e, _, _ in pts]
+        p_ths = [pth for _, pth, _ in pts]
+        errs = [err for _, _, err in pts]
+        ax.errorbar(xs, p_ths, yerr=errs, marker="o", linestyle="-", capsize=3, color=color, label=label)
+
+    ax.set_xscale("log")
+    ax.set_xticks([eta_to_x(e) for e in etas])
+    ax.set_xticklabels([r"$\infty$" if e == float("inf") else fmt_eta(e) for e in etas])
+
+    ax.set_xlabel(r"Bias $\eta = p_Z / (p_X + p_Y)$")
+    ax.set_ylabel(r"Threshold $p_{th}$ (error bars: 1$\sigma$)")
+    ax.set_title("Threshold vs bias: Rotated CSS Surface Code vs XZZX Code")
+    ax.grid(True, which="both", alpha=0.4)
+    ax.legend()
+
+    fig.savefig(f"{outdir}/threshold.png")
+    plt.close(fig)
+
 def render_all(pairs: List[Tuple[str, SamplePoint]], outdir) -> None:
     os.makedirs(outdir, exist_ok=True)
     mpl.rcParams["font.family"] = "serif"
@@ -156,6 +201,8 @@ def render_all(pairs: List[Tuple[str, SamplePoint]], outdir) -> None:
     for eta in sorted({sp.eta for _, sp in pairs}):
         eta_pairs = [(ct, sp) for ct, sp in pairs if sp.eta == eta]
         render_eta(eta, eta_pairs, outdir)
+
+    render_threshold(pairs, outdir)
 
 def render_diagrams(outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
