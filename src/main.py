@@ -3,7 +3,7 @@ import csv
 import argparse
 from typing import List, Tuple
 
-from simulation import sweep
+from simulation import sweep, verify_distance_preservation
 from threshold import SamplePoint
 from visualization import render_all, render_diagrams
 
@@ -56,7 +56,8 @@ if __name__ == "__main__":
         pairs = load_samples(args.from_data)
         render_all(pairs, figures_outdir)
     else:
-        # Sweep, save result and plot
+        # Verify, sweep, save result and plot
+        verify_distance_preservation()
         rows = sweep(
             max_shots=args.max_shots,
             target_errors=args.target_errors,

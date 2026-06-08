@@ -63,9 +63,10 @@ def sweep(max_shots: int, target_errors: int, batch_size: int, seed: int) -> Lis
     # Run the full sweep and return one CSV-ready row per sample point
     rows: List[dict] = []
     with Progress(
-        TextColumn("{task.description}"),
-        BarColumn(bar_width=30),
-        TextColumn("{task.completed}/{task.total}")) as progress:
+            TextColumn("{task.description}"),
+            BarColumn(bar_width=30),
+            TextColumn("{task.completed}/{task.total}")
+        ) as progress:
 
         eta_task = progress.add_task("Simulation", total=len(ETAS))
 
@@ -113,3 +114,21 @@ def sweep(max_shots: int, target_errors: int, batch_size: int, seed: int) -> Lis
             progress.remove_task(code_type_task)
 
     return rows
+
+def verify_distance_preservation():
+    with Progress(
+            TextColumn("{task.description}"),
+            BarColumn(bar_width=30),
+            TextColumn("{task.completed}/{task.total}")
+        ) as progress:
+
+        task = progress.add_task("Verifying distance preservation", total=len(ETAS) * len(CODE_TYPES) * len(DISTANCES))
+        for eta in ETAS:
+            for code_type in CODE_TYPES:
+                for distance in DISTANCES:
+                    code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
+                    circuit = CircuitLevelCircuitBuilder(code, 0.1, eta).build()
+                    err = circuit.shortest_graphlike_error()
+                    if len(err) != distance:
+                        raise AssertionError(f"Graphlike fault distance {len(err)} != code distance {distance}")
+                    progress.update(task, advance=1)
