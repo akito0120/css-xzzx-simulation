@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Literal
 from dataclasses import dataclass, field
 
 Coord = Tuple[int, int]
@@ -108,3 +108,9 @@ def build_xzzx_code(distance: int) -> QecCode:
         logical_z=logical_z,
         hset=hset
     )
+
+def build_code(type: Literal["css", "xzzx"], distance: int) -> QecCode:
+    if type == "css":
+        return build_rotated_surface_code(distance)
+    elif type == "xzzx":
+        return build_xzzx_code(distance)

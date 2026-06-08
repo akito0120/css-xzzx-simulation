@@ -4,7 +4,7 @@ import numpy as np
 import zlib
 from typing import Optional, Tuple, List
 from rich.progress import Progress, BarColumn, TextColumn
-from code_builder import build_rotated_surface_code, build_xzzx_code
+from code_builder import build_code
 from circuit_builder import CircuitLevelCircuitBuilder
 from config import ETAS, CODE_TYPES, DISTANCES, PHYSICAL_ERROR_RATES
 
@@ -80,7 +80,7 @@ def sweep(max_shots: int, target_errors: int, batch_size: int, seed: int) -> Lis
                     p_error_task = progress.add_task(f"Simulating with d = {distance}", total=len(PHYSICAL_ERROR_RATES))
 
                     for physical_error_rate in PHYSICAL_ERROR_RATES:
-                        code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
+                        code = build_code(code_type, distance)
                         circuit = CircuitLevelCircuitBuilder(code, physical_error_rate, eta).build()
                         p_seed = point_seed(seed, code_type, distance, eta, physical_error_rate)
 
@@ -126,7 +126,7 @@ def verify_distance_preservation():
         for eta in ETAS:
             for code_type in CODE_TYPES:
                 for distance in DISTANCES:
-                    code = build_rotated_surface_code(distance) if code_type == "css" else build_xzzx_code(distance)
+                    code = build_code(code_type, distance)
                     circuit = CircuitLevelCircuitBuilder(code, 0.1, eta).build()
                     err = circuit.shortest_graphlike_error()
                     if len(err) != distance:
