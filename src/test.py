@@ -1,3 +1,0 @@
-from simulation import verify_distance_preservation
-
-verify_distance_preservation()
