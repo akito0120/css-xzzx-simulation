@@ -1,6 +1,6 @@
-stim>=1.14
-pymatching>=2.4.0
-numpy>=2.0
-scipy>=1.13
-matplotlib>=3.8
-rich>=13.0
+stim==1.16
+pymatching==2.4.0
+numpy==2.4.4
+scipy==1.17.1
+matplotlib==3.10.9
+rich==15.0
