@@ -254,5 +254,5 @@ It produces, under `--outdir`:
 - [rich](https://pypi.org/project/rich/) (progress bars)
 
 ```bash
-pip install stim pymatching numpy scipy matplotlib rich
+pip install -r requirements.txt
 ```
