@@ -6,13 +6,13 @@ from typing import Optional, Tuple, List
 from rich.progress import Progress, BarColumn, TextColumn
 from code_builder import build_code
 from circuit_builder import CircuitLevelCircuitBuilder
-from config import ETAS, CODE_TYPES, DISTANCES, P_POINTS, P_WINDOWS
+from config import ETAS, CODE_TYPES, DISTANCES, P_STEP, P_WINDOWS
 
 def physical_error_rates(eta: float, code_type: str) -> list[float]:
     if (eta, code_type) not in P_WINDOWS:
         raise KeyError(f"No p-window configured for (eta={eta!r}, code_type={code_type!r})")
     p_min, p_max = P_WINDOWS[(eta, code_type)]
-    return list(np.linspace(p_min, p_max, P_POINTS))
+    return list(np.arange(p_min, p_max + P_STEP * 1e-9, P_STEP))
 
 def wilson_interval(errors: int, shots: int, z: float = 1.96) -> Tuple[float, float]:
     # Wilson interval for a binomial proportion
