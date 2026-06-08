@@ -6,7 +6,13 @@ from typing import Optional, Tuple, List
 from rich.progress import Progress, BarColumn, TextColumn
 from code_builder import build_code
 from circuit_builder import CircuitLevelCircuitBuilder
-from config import ETAS, CODE_TYPES, DISTANCES, PHYSICAL_ERROR_RATES
+from config import ETAS, CODE_TYPES, DISTANCES, P_POINTS, P_WINDOWS
+
+def physical_error_rates(eta: float, code_type: str) -> list[float]:
+    if (eta, code_type) not in P_WINDOWS:
+        raise KeyError(f"No p-window configured for (eta={eta!r}, code_type={code_type!r})")
+    p_min, p_max = P_WINDOWS[(eta, code_type)]
+    return list(np.linspace(p_min, p_max, P_POINTS))
 
 def wilson_interval(errors: int, shots: int, z: float = 1.96) -> Tuple[float, float]:
     # Wilson interval for a binomial proportion
@@ -75,11 +81,12 @@ def sweep(max_shots: int, target_errors: int, batch_size: int, seed: int) -> Lis
 
             for code_type in CODE_TYPES:
                 distance_task = progress.add_task(f"Simulating {code_type}", total=len(DISTANCES))
+                ps = physical_error_rates(eta, code_type)
 
                 for distance in DISTANCES:
-                    p_error_task = progress.add_task(f"Simulating with d = {distance}", total=len(PHYSICAL_ERROR_RATES))
+                    p_error_task = progress.add_task(f"Simulating with d = {distance}", total=len(ps))
 
-                    for physical_error_rate in PHYSICAL_ERROR_RATES:
+                    for physical_error_rate in ps:
                         code = build_code(code_type, distance)
                         circuit = CircuitLevelCircuitBuilder(code, physical_error_rate, eta).build()
                         p_seed = point_seed(seed, code_type, distance, eta, physical_error_rate)

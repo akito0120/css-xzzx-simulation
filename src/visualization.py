@@ -4,7 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from typing import List, Tuple, Dict
 
-from config import DISTANCES, ETAS, PHYSICAL_ERROR_RATES
+from config import DISTANCES
 from code_builder import build_rotated_surface_code, build_xzzx_code
 from circuit_builder import CodeCapacityCircuitBuilder
 from simulation import wilson_interval
@@ -161,11 +161,8 @@ def render_diagrams(outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
     
     for distance in DISTANCES:
-        eta = ETAS[0]
-        p = PHYSICAL_ERROR_RATES[0]
-
         for code in [build_rotated_surface_code(distance), build_xzzx_code(distance)]:
-            circuit = CodeCapacityCircuitBuilder(code, p, eta).build()
+            circuit = CodeCapacityCircuitBuilder(code, 0.1, 0.5).build()
 
             detslice = circuit.diagram("detslice-svg")
             timeline = circuit.diagram("timeline-svg")
