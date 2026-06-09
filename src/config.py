@@ -1,6 +1,6 @@
 ETAS = [0.5, 1, 10, 30, 100, float("inf")]
 CODE_TYPES = ["css", "xzzx"]
-DISTANCES = [3, 5, 7]
+DISTANCES = [3, 5, 7, 9, 11]
 
 P_STEP = 0.001
 P_WINDOWS: dict[tuple[float, str], tuple[float, float]] = {
