@@ -68,7 +68,7 @@ def estimate_threshold(
     p_th0 = popt0[0]
 
     # (3) window around p_th^(0) and refit
-    window = window_frac * float(ps_all.max() - ps_all.min())
+    window = window_frac * float(p_th0)
     in_win = np.abs(ps - p_th0) <= window
     n_points = int(np.count_nonzero(in_win))
     if n_points < 6:
