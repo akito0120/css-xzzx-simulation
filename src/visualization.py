@@ -123,7 +123,7 @@ def render_eta(eta: float, pairs: List[Tuple[str, SamplePoint]], outdir: str) ->
             (xzzx_fit, xzzx_colors[n_dist], "xzzx")
         ):
         ax.axvline(x=fit.p_th, color=color, linestyle="--",
-                   label=f"{name} p_th = {fit.p_th:.4f} ± {fit.p_th_err:.4f}")
+                   label=f"{name} p_th = {fit.p_th:.6f} ± {fit.p_th_err:.6f}")
         ax.axvspan(fit.p_th - fit.p_th_err, fit.p_th + fit.p_th_err,
                    color=color, alpha=0.1)
 
