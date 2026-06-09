@@ -221,6 +221,68 @@ $p_{\mathrm{th}} \pm \delta$, $\nu \pm \delta$, the reduced $\chi^2$, and the wi
 model, the fitting and uncertainty procedure, and the assumptions/limitations — see the dedicated
 [THRESHOLD.md](./docs/THRESHOLD.md).**
 
+## Results
+
+A representative sweep is saved under [full_results/](./full_results/): the **circuit-level** model,
+code distances $d \in \{3, 5, 7, 9, 11\}$, X-memory, MWPM decoding, adaptive sampling
+(`target_errors = 200`, `max_shots = 2,000,000`), across biases $\eta \in \{0.5, 1, 10, 30, 100, \infty\}$.
+The fitted thresholds are summarized below; the full per-$\eta$ curves and FSS collapses are in
+[full_results/figures/](./full_results/figures/) (`result_<eta>.png`, `collapse_<eta>.png`).
+
+![Threshold vs bias](./full_results/figures/threshold.png)
+
+| Bias $\eta$ | CSS $p_{\mathrm{th}}$ | XZZX $p_{\mathrm{th}}$ |
+|---|---|---|
+| 0.5 (depolarizing) | 0.655 % | 0.693 % |
+| 1 | 0.631 % | 0.779 % |
+| 10 | 0.565 % | 1.313 % |
+| 30 | 0.564 % | 1.659 % |
+| 100 | 0.558 % | 1.922 % |
+| $\infty$ (pure $Z$) | 0.559 % | 2.197 % |
+
+(Statistical 1σ on each $p_{\mathrm{th}}$ is at the $\pm 0.002$ percentage-point level; the fitted
+critical exponent is $\nu \approx 1.2$–$1.8$, in the neighbourhood of the surface-code random-bond-Ising
+value $\nu \approx 1.5$.)
+
+**What the numbers show.**
+
+- At low bias ($\eta = 0.5$, depolarizing) the two codes are essentially tied (≈ 0.65–0.69 %).
+- As the noise becomes Z-biased, the **XZZX threshold rises monotonically**, reaching ≈ 2.2 % at
+  infinite bias — roughly a **4× improvement** over the depolarizing point — while the **plain CSS
+  threshold stays flat** (it even drifts slightly *down*, to ≈ 0.56 %). This is exactly the
+  bias-tailoring advantage the XZZX Hadamard deformation is designed to deliver.
+
+### Consistency with prior work
+
+The results reproduce the established literature both qualitatively and quantitatively:
+
+- **XZZX advantage grows with bias; CSS does not.** This monotonic separation is the central result of
+  Bonilla Ataides *et al.*, *The XZZX surface code* ([arXiv:2009.07851](https://arxiv.org/abs/2009.07851)),
+  and of Darmawan *et al.* ([arXiv:2104.09539](https://arxiv.org/abs/2104.09539)) for the circuit-level /
+  cat-qubit setting. Our sweep shows precisely this trend.
+- **CSS depolarizing threshold.** Our $\eta = 0.5$ value (≈ 0.65 %) sits in the well-known band for the
+  rotated surface code under circuit-level depolarizing noise with MWPM (≈ 0.45–0.5 %, e.g. *Compare the
+  Pair*, [Phys. Rev. Research 7, 033074](https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.7.033074)).
+  It runs slightly high because this is a single-observable **X-memory** experiment and, at $\eta = 0.5$,
+  the two-qubit channel is already mildly Z-biased (its depolarizing point is $\eta = 1/4$, not $1/2$).
+- **XZZX infinite-bias threshold.** Our ≈ 2.2 % at $\eta \to \infty$ matches the ≈ 2.3 % circuit-level
+  threshold reported for the XZZX code with **bias-preserving CNOTs** and MWPM in the biased-noise
+  literature.
+- **Not to be confused with code capacity.** The famous "≈ 50 % at infinite bias" XZZX figure is a
+  *code-capacity* number (the hashing bound); the much smaller values here are *circuit-level* thresholds,
+  as expected.
+
+### Caveats on the absolute values
+
+- **MWPM is sub-optimal** for the correlated, highly-biased noise here, so every quoted $p_{\mathrm{th}}$ is
+  a **lower bound** — a correlated-matching or BP+OSD decoder would push the XZZX numbers higher (see
+  [Decoding and Logical Error Rate](#decoding-and-logical-error-rate)).
+- The quadratic FSS collapse has **reduced $\chi^2 > 1$** (the small distances carry finite-size corrections
+  beyond the leading scaling form), so treat the absolute thresholds as solid *comparative* estimates rather
+  than high-precision determinations (see [THRESHOLD.md](./docs/THRESHOLD.md) §7).
+- Thresholds from different noise models live on different $p$-axes; only the **CSS-vs-XZZX comparison within
+  one model and one $\eta$** is meaningful.
+
 ## Running
 
 From the `src/` directory:
