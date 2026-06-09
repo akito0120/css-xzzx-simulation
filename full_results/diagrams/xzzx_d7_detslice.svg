@@ -1,0 +1,615 @@
+<svg viewBox="0 0 732.446 348.784" xmlns="http://www.w3.org/2000/svg">
+<g id="slice:4:2_2_1:1">
+<path d="M422.29,38.6274 L467.544,38.6274 L467.544,83.8822 L422.29,83.8822 L422.29,38.6274" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip0"><path d="M422.29,38.6274 L467.544,38.6274 L467.544,83.8822 L422.29,83.8822 L422.29,38.6274"/></clipPath>
+<circle clip-path="url(#clip0)" cx="422.29" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip0)" cx="467.544" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip0)" cx="422.29" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip0)" cx="467.544" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,38.6274 L467.544,38.6274 L467.544,83.8822 L422.29,83.8822 L422.29,38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:5:4_2_1:1">
+<path d="M467.544,38.6274 L512.799,38.6274 L512.799,83.8822 L467.544,83.8822 L467.544,38.6274" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip1"><path d="M467.544,38.6274 L512.799,38.6274 L512.799,83.8822 L467.544,83.8822 L467.544,38.6274"/></clipPath>
+<circle clip-path="url(#clip1)" cx="467.544" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip1)" cx="512.799" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip1)" cx="467.544" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip1)" cx="512.799" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M467.544,38.6274 L512.799,38.6274 L512.799,83.8822 L467.544,83.8822 L467.544,38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:6:6_2_1:1">
+<path d="M512.799,38.6274 L558.054,38.6274 L558.054,83.8822 L512.799,83.8822 L512.799,38.6274" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip2"><path d="M512.799,38.6274 L558.054,38.6274 L558.054,83.8822 L512.799,83.8822 L512.799,38.6274"/></clipPath>
+<circle clip-path="url(#clip2)" cx="512.799" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip2)" cx="558.054" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip2)" cx="512.799" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip2)" cx="558.054" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M512.799,38.6274 L558.054,38.6274 L558.054,83.8822 L512.799,83.8822 L512.799,38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:7:8_2_1:1">
+<path d="M558.054,38.6274 L603.309,38.6274 L603.309,83.8822 L558.054,83.8822 L558.054,38.6274" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip3"><path d="M558.054,38.6274 L603.309,38.6274 L603.309,83.8822 L558.054,83.8822 L558.054,38.6274"/></clipPath>
+<circle clip-path="url(#clip3)" cx="558.054" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip3)" cx="603.309" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip3)" cx="558.054" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip3)" cx="603.309" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M558.054,38.6274 L603.309,38.6274 L603.309,83.8822 L558.054,83.8822 L558.054,38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:8:10_2_1:1">
+<path d="M603.309,38.6274 L648.564,38.6274 L648.564,83.8822 L603.309,83.8822 L603.309,38.6274" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip4"><path d="M603.309,38.6274 L648.564,38.6274 L648.564,83.8822 L603.309,83.8822 L603.309,38.6274"/></clipPath>
+<circle clip-path="url(#clip4)" cx="603.309" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip4)" cx="648.564" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip4)" cx="603.309" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip4)" cx="648.564" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M603.309,38.6274 L648.564,38.6274 L648.564,83.8822 L603.309,83.8822 L603.309,38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:9:12_2_1:1">
+<path d="M648.564,38.6274 L693.819,38.6274 L693.819,83.8822 L648.564,83.8822 L648.564,38.6274" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip5"><path d="M648.564,38.6274 L693.819,38.6274 L693.819,83.8822 L648.564,83.8822 L648.564,38.6274"/></clipPath>
+<circle clip-path="url(#clip5)" cx="648.564" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip5)" cx="693.819" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip5)" cx="648.564" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip5)" cx="693.819" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M648.564,38.6274 L693.819,38.6274 L693.819,83.8822 L648.564,83.8822 L648.564,38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:10:2_4_1:1">
+<path d="M422.29,83.8822 L467.544,83.8822 L467.544,129.137 L422.29,129.137 L422.29,83.8822" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip6"><path d="M422.29,83.8822 L467.544,83.8822 L467.544,129.137 L422.29,129.137 L422.29,83.8822"/></clipPath>
+<circle clip-path="url(#clip6)" cx="422.29" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip6)" cx="467.544" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip6)" cx="422.29" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip6)" cx="467.544" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,83.8822 L467.544,83.8822 L467.544,129.137 L422.29,129.137 L422.29,83.8822" stroke="black" fill="none"/>
+</g>
+<g id="slice:11:4_4_1:1">
+<path d="M467.544,83.8822 L512.799,83.8822 L512.799,129.137 L467.544,129.137 L467.544,83.8822" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip7"><path d="M467.544,83.8822 L512.799,83.8822 L512.799,129.137 L467.544,129.137 L467.544,83.8822"/></clipPath>
+<circle clip-path="url(#clip7)" cx="467.544" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip7)" cx="512.799" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip7)" cx="467.544" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip7)" cx="512.799" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M467.544,83.8822 L512.799,83.8822 L512.799,129.137 L467.544,129.137 L467.544,83.8822" stroke="black" fill="none"/>
+</g>
+<g id="slice:12:6_4_1:1">
+<path d="M512.799,83.8822 L558.054,83.8822 L558.054,129.137 L512.799,129.137 L512.799,83.8822" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip8"><path d="M512.799,83.8822 L558.054,83.8822 L558.054,129.137 L512.799,129.137 L512.799,83.8822"/></clipPath>
+<circle clip-path="url(#clip8)" cx="512.799" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip8)" cx="558.054" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip8)" cx="512.799" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip8)" cx="558.054" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M512.799,83.8822 L558.054,83.8822 L558.054,129.137 L512.799,129.137 L512.799,83.8822" stroke="black" fill="none"/>
+</g>
+<g id="slice:13:8_4_1:1">
+<path d="M558.054,83.8822 L603.309,83.8822 L603.309,129.137 L558.054,129.137 L558.054,83.8822" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip9"><path d="M558.054,83.8822 L603.309,83.8822 L603.309,129.137 L558.054,129.137 L558.054,83.8822"/></clipPath>
+<circle clip-path="url(#clip9)" cx="558.054" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip9)" cx="603.309" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip9)" cx="558.054" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip9)" cx="603.309" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M558.054,83.8822 L603.309,83.8822 L603.309,129.137 L558.054,129.137 L558.054,83.8822" stroke="black" fill="none"/>
+</g>
+<g id="slice:14:10_4_1:1">
+<path d="M603.309,83.8822 L648.564,83.8822 L648.564,129.137 L603.309,129.137 L603.309,83.8822" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip10"><path d="M603.309,83.8822 L648.564,83.8822 L648.564,129.137 L603.309,129.137 L603.309,83.8822"/></clipPath>
+<circle clip-path="url(#clip10)" cx="603.309" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip10)" cx="648.564" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip10)" cx="603.309" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip10)" cx="648.564" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M603.309,83.8822 L648.564,83.8822 L648.564,129.137 L603.309,129.137 L603.309,83.8822" stroke="black" fill="none"/>
+</g>
+<g id="slice:15:12_4_1:1">
+<path d="M648.564,83.8822 L693.819,83.8822 L693.819,129.137 L648.564,129.137 L648.564,83.8822" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip11"><path d="M648.564,83.8822 L693.819,83.8822 L693.819,129.137 L648.564,129.137 L648.564,83.8822"/></clipPath>
+<circle clip-path="url(#clip11)" cx="648.564" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip11)" cx="693.819" cy="83.8822" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip11)" cx="648.564" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip11)" cx="693.819" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M648.564,83.8822 L693.819,83.8822 L693.819,129.137 L648.564,129.137 L648.564,83.8822" stroke="black" fill="none"/>
+</g>
+<g id="slice:18:2_6_1:1">
+<path d="M422.29,129.137 L467.544,129.137 L467.544,174.392 L422.29,174.392 L422.29,129.137" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip12"><path d="M422.29,129.137 L467.544,129.137 L467.544,174.392 L422.29,174.392 L422.29,129.137"/></clipPath>
+<circle clip-path="url(#clip12)" cx="422.29" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip12)" cx="467.544" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip12)" cx="422.29" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip12)" cx="467.544" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,129.137 L467.544,129.137 L467.544,174.392 L422.29,174.392 L422.29,129.137" stroke="black" fill="none"/>
+</g>
+<g id="slice:19:4_6_1:1">
+<path d="M467.544,129.137 L512.799,129.137 L512.799,174.392 L467.544,174.392 L467.544,129.137" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip13"><path d="M467.544,129.137 L512.799,129.137 L512.799,174.392 L467.544,174.392 L467.544,129.137"/></clipPath>
+<circle clip-path="url(#clip13)" cx="467.544" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip13)" cx="512.799" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip13)" cx="467.544" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip13)" cx="512.799" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M467.544,129.137 L512.799,129.137 L512.799,174.392 L467.544,174.392 L467.544,129.137" stroke="black" fill="none"/>
+</g>
+<g id="slice:20:6_6_1:1">
+<path d="M512.799,129.137 L558.054,129.137 L558.054,174.392 L512.799,174.392 L512.799,129.137" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip14"><path d="M512.799,129.137 L558.054,129.137 L558.054,174.392 L512.799,174.392 L512.799,129.137"/></clipPath>
+<circle clip-path="url(#clip14)" cx="512.799" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip14)" cx="558.054" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip14)" cx="512.799" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip14)" cx="558.054" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M512.799,129.137 L558.054,129.137 L558.054,174.392 L512.799,174.392 L512.799,129.137" stroke="black" fill="none"/>
+</g>
+<g id="slice:21:8_6_1:1">
+<path d="M558.054,129.137 L603.309,129.137 L603.309,174.392 L558.054,174.392 L558.054,129.137" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip15"><path d="M558.054,129.137 L603.309,129.137 L603.309,174.392 L558.054,174.392 L558.054,129.137"/></clipPath>
+<circle clip-path="url(#clip15)" cx="558.054" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip15)" cx="603.309" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip15)" cx="558.054" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip15)" cx="603.309" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M558.054,129.137 L603.309,129.137 L603.309,174.392 L558.054,174.392 L558.054,129.137" stroke="black" fill="none"/>
+</g>
+<g id="slice:22:10_6_1:1">
+<path d="M603.309,129.137 L648.564,129.137 L648.564,174.392 L603.309,174.392 L603.309,129.137" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip16"><path d="M603.309,129.137 L648.564,129.137 L648.564,174.392 L603.309,174.392 L603.309,129.137"/></clipPath>
+<circle clip-path="url(#clip16)" cx="603.309" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip16)" cx="648.564" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip16)" cx="603.309" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip16)" cx="648.564" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M603.309,129.137 L648.564,129.137 L648.564,174.392 L603.309,174.392 L603.309,129.137" stroke="black" fill="none"/>
+</g>
+<g id="slice:23:12_6_1:1">
+<path d="M648.564,129.137 L693.819,129.137 L693.819,174.392 L648.564,174.392 L648.564,129.137" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip17"><path d="M648.564,129.137 L693.819,129.137 L693.819,174.392 L648.564,174.392 L648.564,129.137"/></clipPath>
+<circle clip-path="url(#clip17)" cx="648.564" cy="129.137" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip17)" cx="693.819" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip17)" cx="648.564" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip17)" cx="693.819" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M648.564,129.137 L693.819,129.137 L693.819,174.392 L648.564,174.392 L648.564,129.137" stroke="black" fill="none"/>
+</g>
+<g id="slice:24:2_8_1:1">
+<path d="M422.29,174.392 L467.544,174.392 L467.544,219.647 L422.29,219.647 L422.29,174.392" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip18"><path d="M422.29,174.392 L467.544,174.392 L467.544,219.647 L422.29,219.647 L422.29,174.392"/></clipPath>
+<circle clip-path="url(#clip18)" cx="422.29" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip18)" cx="467.544" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip18)" cx="422.29" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip18)" cx="467.544" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,174.392 L467.544,174.392 L467.544,219.647 L422.29,219.647 L422.29,174.392" stroke="black" fill="none"/>
+</g>
+<g id="slice:25:4_8_1:1">
+<path d="M467.544,174.392 L512.799,174.392 L512.799,219.647 L467.544,219.647 L467.544,174.392" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip19"><path d="M467.544,174.392 L512.799,174.392 L512.799,219.647 L467.544,219.647 L467.544,174.392"/></clipPath>
+<circle clip-path="url(#clip19)" cx="467.544" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip19)" cx="512.799" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip19)" cx="467.544" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip19)" cx="512.799" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M467.544,174.392 L512.799,174.392 L512.799,219.647 L467.544,219.647 L467.544,174.392" stroke="black" fill="none"/>
+</g>
+<g id="slice:26:6_8_1:1">
+<path d="M512.799,174.392 L558.054,174.392 L558.054,219.647 L512.799,219.647 L512.799,174.392" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip20"><path d="M512.799,174.392 L558.054,174.392 L558.054,219.647 L512.799,219.647 L512.799,174.392"/></clipPath>
+<circle clip-path="url(#clip20)" cx="512.799" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip20)" cx="558.054" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip20)" cx="512.799" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip20)" cx="558.054" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M512.799,174.392 L558.054,174.392 L558.054,219.647 L512.799,219.647 L512.799,174.392" stroke="black" fill="none"/>
+</g>
+<g id="slice:27:8_8_1:1">
+<path d="M558.054,174.392 L603.309,174.392 L603.309,219.647 L558.054,219.647 L558.054,174.392" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip21"><path d="M558.054,174.392 L603.309,174.392 L603.309,219.647 L558.054,219.647 L558.054,174.392"/></clipPath>
+<circle clip-path="url(#clip21)" cx="558.054" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip21)" cx="603.309" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip21)" cx="558.054" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip21)" cx="603.309" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M558.054,174.392 L603.309,174.392 L603.309,219.647 L558.054,219.647 L558.054,174.392" stroke="black" fill="none"/>
+</g>
+<g id="slice:28:10_8_1:1">
+<path d="M603.309,174.392 L648.564,174.392 L648.564,219.647 L603.309,219.647 L603.309,174.392" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip22"><path d="M603.309,174.392 L648.564,174.392 L648.564,219.647 L603.309,219.647 L603.309,174.392"/></clipPath>
+<circle clip-path="url(#clip22)" cx="603.309" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip22)" cx="648.564" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip22)" cx="603.309" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip22)" cx="648.564" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M603.309,174.392 L648.564,174.392 L648.564,219.647 L603.309,219.647 L603.309,174.392" stroke="black" fill="none"/>
+</g>
+<g id="slice:29:12_8_1:1">
+<path d="M648.564,174.392 L693.819,174.392 L693.819,219.647 L648.564,219.647 L648.564,174.392" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip23"><path d="M648.564,174.392 L693.819,174.392 L693.819,219.647 L648.564,219.647 L648.564,174.392"/></clipPath>
+<circle clip-path="url(#clip23)" cx="648.564" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip23)" cx="693.819" cy="174.392" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip23)" cx="648.564" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip23)" cx="693.819" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M648.564,174.392 L693.819,174.392 L693.819,219.647 L648.564,219.647 L648.564,174.392" stroke="black" fill="none"/>
+</g>
+<g id="slice:32:2_10_1:1">
+<path d="M422.29,219.647 L467.544,219.647 L467.544,264.902 L422.29,264.902 L422.29,219.647" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip24"><path d="M422.29,219.647 L467.544,219.647 L467.544,264.902 L422.29,264.902 L422.29,219.647"/></clipPath>
+<circle clip-path="url(#clip24)" cx="422.29" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip24)" cx="467.544" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip24)" cx="422.29" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip24)" cx="467.544" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,219.647 L467.544,219.647 L467.544,264.902 L422.29,264.902 L422.29,219.647" stroke="black" fill="none"/>
+</g>
+<g id="slice:33:4_10_1:1">
+<path d="M467.544,219.647 L512.799,219.647 L512.799,264.902 L467.544,264.902 L467.544,219.647" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip25"><path d="M467.544,219.647 L512.799,219.647 L512.799,264.902 L467.544,264.902 L467.544,219.647"/></clipPath>
+<circle clip-path="url(#clip25)" cx="467.544" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip25)" cx="512.799" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip25)" cx="467.544" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip25)" cx="512.799" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M467.544,219.647 L512.799,219.647 L512.799,264.902 L467.544,264.902 L467.544,219.647" stroke="black" fill="none"/>
+</g>
+<g id="slice:34:6_10_1:1">
+<path d="M512.799,219.647 L558.054,219.647 L558.054,264.902 L512.799,264.902 L512.799,219.647" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip26"><path d="M512.799,219.647 L558.054,219.647 L558.054,264.902 L512.799,264.902 L512.799,219.647"/></clipPath>
+<circle clip-path="url(#clip26)" cx="512.799" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip26)" cx="558.054" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip26)" cx="512.799" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip26)" cx="558.054" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M512.799,219.647 L558.054,219.647 L558.054,264.902 L512.799,264.902 L512.799,219.647" stroke="black" fill="none"/>
+</g>
+<g id="slice:35:8_10_1:1">
+<path d="M558.054,219.647 L603.309,219.647 L603.309,264.902 L558.054,264.902 L558.054,219.647" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip27"><path d="M558.054,219.647 L603.309,219.647 L603.309,264.902 L558.054,264.902 L558.054,219.647"/></clipPath>
+<circle clip-path="url(#clip27)" cx="558.054" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip27)" cx="603.309" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip27)" cx="558.054" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip27)" cx="603.309" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M558.054,219.647 L603.309,219.647 L603.309,264.902 L558.054,264.902 L558.054,219.647" stroke="black" fill="none"/>
+</g>
+<g id="slice:36:10_10_1:1">
+<path d="M603.309,219.647 L648.564,219.647 L648.564,264.902 L603.309,264.902 L603.309,219.647" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip28"><path d="M603.309,219.647 L648.564,219.647 L648.564,264.902 L603.309,264.902 L603.309,219.647"/></clipPath>
+<circle clip-path="url(#clip28)" cx="603.309" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip28)" cx="648.564" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip28)" cx="603.309" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip28)" cx="648.564" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M603.309,219.647 L648.564,219.647 L648.564,264.902 L603.309,264.902 L603.309,219.647" stroke="black" fill="none"/>
+</g>
+<g id="slice:37:12_10_1:1">
+<path d="M648.564,219.647 L693.819,219.647 L693.819,264.902 L648.564,264.902 L648.564,219.647" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip29"><path d="M648.564,219.647 L693.819,219.647 L693.819,264.902 L648.564,264.902 L648.564,219.647"/></clipPath>
+<circle clip-path="url(#clip29)" cx="648.564" cy="219.647" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip29)" cx="693.819" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip29)" cx="648.564" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip29)" cx="693.819" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M648.564,219.647 L693.819,219.647 L693.819,264.902 L648.564,264.902 L648.564,219.647" stroke="black" fill="none"/>
+</g>
+<g id="slice:38:2_12_1:1">
+<path d="M422.29,264.902 L467.544,264.902 L467.544,310.156 L422.29,310.156 L422.29,264.902" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip30"><path d="M422.29,264.902 L467.544,264.902 L467.544,310.156 L422.29,310.156 L422.29,264.902"/></clipPath>
+<circle clip-path="url(#clip30)" cx="422.29" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip30)" cx="467.544" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip30)" cx="422.29" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip30)" cx="467.544" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,264.902 L467.544,264.902 L467.544,310.156 L422.29,310.156 L422.29,264.902" stroke="black" fill="none"/>
+</g>
+<g id="slice:39:4_12_1:1">
+<path d="M467.544,264.902 L512.799,264.902 L512.799,310.156 L467.544,310.156 L467.544,264.902" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip31"><path d="M467.544,264.902 L512.799,264.902 L512.799,310.156 L467.544,310.156 L467.544,264.902"/></clipPath>
+<circle clip-path="url(#clip31)" cx="467.544" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip31)" cx="512.799" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip31)" cx="467.544" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip31)" cx="512.799" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M467.544,264.902 L512.799,264.902 L512.799,310.156 L467.544,310.156 L467.544,264.902" stroke="black" fill="none"/>
+</g>
+<g id="slice:40:6_12_1:1">
+<path d="M512.799,264.902 L558.054,264.902 L558.054,310.156 L512.799,310.156 L512.799,264.902" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip32"><path d="M512.799,264.902 L558.054,264.902 L558.054,310.156 L512.799,310.156 L512.799,264.902"/></clipPath>
+<circle clip-path="url(#clip32)" cx="512.799" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip32)" cx="558.054" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip32)" cx="512.799" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip32)" cx="558.054" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M512.799,264.902 L558.054,264.902 L558.054,310.156 L512.799,310.156 L512.799,264.902" stroke="black" fill="none"/>
+</g>
+<g id="slice:41:8_12_1:1">
+<path d="M558.054,264.902 L603.309,264.902 L603.309,310.156 L558.054,310.156 L558.054,264.902" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip33"><path d="M558.054,264.902 L603.309,264.902 L603.309,310.156 L558.054,310.156 L558.054,264.902"/></clipPath>
+<circle clip-path="url(#clip33)" cx="558.054" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip33)" cx="603.309" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip33)" cx="558.054" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip33)" cx="603.309" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M558.054,264.902 L603.309,264.902 L603.309,310.156 L558.054,310.156 L558.054,264.902" stroke="black" fill="none"/>
+</g>
+<g id="slice:42:10_12_1:1">
+<path d="M603.309,264.902 L648.564,264.902 L648.564,310.156 L603.309,310.156 L603.309,264.902" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip34"><path d="M603.309,264.902 L648.564,264.902 L648.564,310.156 L603.309,310.156 L603.309,264.902"/></clipPath>
+<circle clip-path="url(#clip34)" cx="603.309" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip34)" cx="648.564" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip34)" cx="603.309" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip34)" cx="648.564" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M603.309,264.902 L648.564,264.902 L648.564,310.156 L603.309,310.156 L603.309,264.902" stroke="black" fill="none"/>
+</g>
+<g id="slice:43:12_12_1:1">
+<path d="M648.564,264.902 L693.819,264.902 L693.819,310.156 L648.564,310.156 L648.564,264.902" stroke="none" fill-opacity="0.75" fill="#AAAAAA"/>
+<clipPath id="clip35"><path d="M648.564,264.902 L693.819,264.902 L693.819,310.156 L648.564,310.156 L648.564,264.902"/></clipPath>
+<circle clip-path="url(#clip35)" cx="648.564" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip35)" cx="693.819" cy="264.902" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip35)" cx="648.564" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip35)" cx="693.819" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M648.564,264.902 L693.819,264.902 L693.819,310.156 L648.564,310.156 L648.564,264.902" stroke="black" fill="none"/>
+</g>
+<g id="slice:0:4_0_1:1">
+<path d="M467.544,38.6274 C481.121 47.6784, 499.223 47.6784, 512.799 38.6274 C499.223 29.5765, 481.121 29.5765, 467.544 38.6274" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip36"><path d="M467.544,38.6274 C481.121 47.6784, 499.223 47.6784, 512.799 38.6274 C499.223 29.5765, 481.121 29.5765, 467.544 38.6274"/></clipPath>
+<circle clip-path="url(#clip36)" cx="467.544" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip36)" cx="512.799" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M467.544,38.6274 C481.121 47.6784, 499.223 47.6784, 512.799 38.6274 C499.223 29.5765, 481.121 29.5765, 467.544 38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:1:8_0_1:1">
+<path d="M558.054,38.6274 C571.631 47.6784, 589.732 47.6784, 603.309 38.6274 C589.732 29.5765, 571.631 29.5765, 558.054 38.6274" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip37"><path d="M558.054,38.6274 C571.631 47.6784, 589.732 47.6784, 603.309 38.6274 C589.732 29.5765, 571.631 29.5765, 558.054 38.6274"/></clipPath>
+<circle clip-path="url(#clip37)" cx="558.054" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip37)" cx="603.309" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M558.054,38.6274 C571.631 47.6784, 589.732 47.6784, 603.309 38.6274 C589.732 29.5765, 571.631 29.5765, 558.054 38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:2:12_0_1:1">
+<path d="M648.564,38.6274 C662.14 47.6784, 680.242 47.6784, 693.819 38.6274 C680.242 29.5765, 662.14 29.5765, 648.564 38.6274" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip38"><path d="M648.564,38.6274 C662.14 47.6784, 680.242 47.6784, 693.819 38.6274 C680.242 29.5765, 662.14 29.5765, 648.564 38.6274"/></clipPath>
+<circle clip-path="url(#clip38)" cx="648.564" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip38)" cx="693.819" cy="38.6274" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M648.564,38.6274 C662.14 47.6784, 680.242 47.6784, 693.819 38.6274 C680.242 29.5765, 662.14 29.5765, 648.564 38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:3:0_2_1:1">
+<path d="M422.29,38.6274 C413.239 52.2039, 413.239 70.3058, 422.29 83.8822 C431.341 70.3058, 431.341 52.2039, 422.29 38.6274" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip39"><path d="M422.29,38.6274 C413.239 52.2039, 413.239 70.3058, 422.29 83.8822 C431.341 70.3058, 431.341 52.2039, 422.29 38.6274"/></clipPath>
+<circle clip-path="url(#clip39)" cx="422.29" cy="38.6274" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip39)" cx="422.29" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,38.6274 C413.239 52.2039, 413.239 70.3058, 422.29 83.8822 C431.341 70.3058, 431.341 52.2039, 422.29 38.6274" stroke="black" fill="none"/>
+</g>
+<g id="slice:16:14_4_1:1">
+<path d="M693.819,83.8822 C684.768 97.4587, 684.768 115.561, 693.819 129.137 C702.87 115.561, 702.87 97.4587, 693.819 83.8822" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip40"><path d="M693.819,83.8822 C684.768 97.4587, 684.768 115.561, 693.819 129.137 C702.87 115.561, 702.87 97.4587, 693.819 83.8822"/></clipPath>
+<circle clip-path="url(#clip40)" cx="693.819" cy="83.8822" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip40)" cx="693.819" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<path d="M693.819,83.8822 C684.768 97.4587, 684.768 115.561, 693.819 129.137 C702.87 115.561, 702.87 97.4587, 693.819 83.8822" stroke="black" fill="none"/>
+</g>
+<g id="slice:17:0_6_1:1">
+<path d="M422.29,129.137 C413.239 142.714, 413.239 160.815, 422.29 174.392 C431.341 160.815, 431.341 142.714, 422.29 129.137" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip41"><path d="M422.29,129.137 C413.239 142.714, 413.239 160.815, 422.29 174.392 C431.341 160.815, 431.341 142.714, 422.29 129.137"/></clipPath>
+<circle clip-path="url(#clip41)" cx="422.29" cy="129.137" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip41)" cx="422.29" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,129.137 C413.239 142.714, 413.239 160.815, 422.29 174.392 C431.341 160.815, 431.341 142.714, 422.29 129.137" stroke="black" fill="none"/>
+</g>
+<g id="slice:30:14_8_1:1">
+<path d="M693.819,174.392 C684.768 187.968, 684.768 206.07, 693.819 219.647 C702.87 206.07, 702.87 187.968, 693.819 174.392" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip42"><path d="M693.819,174.392 C684.768 187.968, 684.768 206.07, 693.819 219.647 C702.87 206.07, 702.87 187.968, 693.819 174.392"/></clipPath>
+<circle clip-path="url(#clip42)" cx="693.819" cy="174.392" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip42)" cx="693.819" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<path d="M693.819,174.392 C684.768 187.968, 684.768 206.07, 693.819 219.647 C702.87 206.07, 702.87 187.968, 693.819 174.392" stroke="black" fill="none"/>
+</g>
+<g id="slice:31:0_10_1:1">
+<path d="M422.29,219.647 C413.239 233.223, 413.239 251.325, 422.29 264.902 C431.341 251.325, 431.341 233.223, 422.29 219.647" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip43"><path d="M422.29,219.647 C413.239 233.223, 413.239 251.325, 422.29 264.902 C431.341 251.325, 431.341 233.223, 422.29 219.647"/></clipPath>
+<circle clip-path="url(#clip43)" cx="422.29" cy="219.647" r="20" stroke="none" fill="url('#xgrad')"/>
+<circle clip-path="url(#clip43)" cx="422.29" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<path d="M422.29,219.647 C413.239 233.223, 413.239 251.325, 422.29 264.902 C431.341 251.325, 431.341 233.223, 422.29 219.647" stroke="black" fill="none"/>
+</g>
+<g id="slice:44:14_12_1:1">
+<path d="M693.819,264.902 C684.768 278.478, 684.768 296.58, 693.819 310.156 C702.87 296.58, 702.87 278.478, 693.819 264.902" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip44"><path d="M693.819,264.902 C684.768 278.478, 684.768 296.58, 693.819 310.156 C702.87 296.58, 702.87 278.478, 693.819 264.902"/></clipPath>
+<circle clip-path="url(#clip44)" cx="693.819" cy="264.902" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip44)" cx="693.819" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<path d="M693.819,264.902 C684.768 278.478, 684.768 296.58, 693.819 310.156 C702.87 296.58, 702.87 278.478, 693.819 264.902" stroke="black" fill="none"/>
+</g>
+<g id="slice:45:2_14_1:1">
+<path d="M422.29,310.156 C435.866 319.207, 453.968 319.207, 467.544 310.156 C453.968 301.105, 435.866 301.105, 422.29 310.156" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip45"><path d="M422.29,310.156 C435.866 319.207, 453.968 319.207, 467.544 310.156 C453.968 301.105, 435.866 301.105, 422.29 310.156"/></clipPath>
+<circle clip-path="url(#clip45)" cx="422.29" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip45)" cx="467.544" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<path d="M422.29,310.156 C435.866 319.207, 453.968 319.207, 467.544 310.156 C453.968 301.105, 435.866 301.105, 422.29 310.156" stroke="black" fill="none"/>
+</g>
+<g id="slice:46:6_14_1:1">
+<path d="M512.799,310.156 C526.376 319.207, 544.478 319.207, 558.054 310.156 C544.478 301.105, 526.376 301.105, 512.799 310.156" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip46"><path d="M512.799,310.156 C526.376 319.207, 544.478 319.207, 558.054 310.156 C544.478 301.105, 526.376 301.105, 512.799 310.156"/></clipPath>
+<circle clip-path="url(#clip46)" cx="512.799" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip46)" cx="558.054" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<path d="M512.799,310.156 C526.376 319.207, 544.478 319.207, 558.054 310.156 C544.478 301.105, 526.376 301.105, 512.799 310.156" stroke="black" fill="none"/>
+</g>
+<g id="slice:47:10_14_1:1">
+<path d="M603.309,310.156 C616.885 319.207, 634.987 319.207, 648.564 310.156 C634.987 301.105, 616.885 301.105, 603.309 310.156" stroke="none" fill="#AAAAAA"/>
+<clipPath id="clip47"><path d="M603.309,310.156 C616.885 319.207, 634.987 319.207, 648.564 310.156 C634.987 301.105, 616.885 301.105, 603.309 310.156"/></clipPath>
+<circle clip-path="url(#clip47)" cx="603.309" cy="310.156" r="20" stroke="none" fill="url('#zgrad')"/>
+<circle clip-path="url(#clip47)" cx="648.564" cy="310.156" r="20" stroke="none" fill="url('#xgrad')"/>
+<path d="M603.309,310.156 C616.885 319.207, 634.987 319.207, 648.564 310.156 C634.987 301.105, 616.885 301.105, 603.309 310.156" stroke="black" fill="none"/>
+</g>
+<defs>
+<radialGradient id="xgrad"><stop offset="50%" stop-color="#FF4040" stop-opacity="1"/><stop offset="100%" stop-color="#AAAAAA" stop-opacity="0"/></radialGradient>
+<radialGradient id="ygrad"><stop offset="50%" stop-color="#59FF7A" stop-opacity="1"/><stop offset="100%" stop-color="#AAAAAA" stop-opacity="0"/></radialGradient>
+<radialGradient id="zgrad"><stop offset="50%" stop-color="#4DA6FF" stop-opacity="1"/><stop offset="100%" stop-color="#AAAAAA" stop-opacity="0"/></radialGradient>
+</defs>
+<g id="qubit_dots">
+<circle id="qubit_dot:0:1_1:0" cx="38.6274" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:1:3_1:0" cx="83.8822" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:2:5_1:0" cx="129.137" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:3:7_1:0" cx="174.392" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:4:9_1:0" cx="219.647" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:5:11_1:0" cx="264.902" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:6:13_1:0" cx="310.156" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:7:1_3:0" cx="38.6274" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:8:3_3:0" cx="83.8822" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:9:5_3:0" cx="129.137" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:10:7_3:0" cx="174.392" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:11:9_3:0" cx="219.647" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:12:11_3:0" cx="264.902" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:13:13_3:0" cx="310.156" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:14:1_5:0" cx="38.6274" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:15:3_5:0" cx="83.8822" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:16:5_5:0" cx="129.137" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:17:7_5:0" cx="174.392" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:18:9_5:0" cx="219.647" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:19:11_5:0" cx="264.902" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:20:13_5:0" cx="310.156" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:21:1_7:0" cx="38.6274" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:22:3_7:0" cx="83.8822" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:23:5_7:0" cx="129.137" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:24:7_7:0" cx="174.392" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:25:9_7:0" cx="219.647" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:26:11_7:0" cx="264.902" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:27:13_7:0" cx="310.156" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:28:1_9:0" cx="38.6274" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:29:3_9:0" cx="83.8822" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:30:5_9:0" cx="129.137" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:31:7_9:0" cx="174.392" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:32:9_9:0" cx="219.647" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:33:11_9:0" cx="264.902" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:34:13_9:0" cx="310.156" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:35:1_11:0" cx="38.6274" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:36:3_11:0" cx="83.8822" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:37:5_11:0" cx="129.137" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:38:7_11:0" cx="174.392" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:39:9_11:0" cx="219.647" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:40:11_11:0" cx="264.902" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:41:13_11:0" cx="310.156" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:42:1_13:0" cx="38.6274" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:43:3_13:0" cx="83.8822" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:44:5_13:0" cx="129.137" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:45:7_13:0" cx="174.392" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:46:9_13:0" cx="219.647" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:47:11_13:0" cx="264.902" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:48:13_13:0" cx="310.156" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:49:4_0:0" cx="106.51" cy="16" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:50:8_0:0" cx="197.019" cy="16" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:51:12_0:0" cx="287.529" cy="16" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:52:0_2:0" cx="16" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:53:2_2:0" cx="61.2548" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:54:4_2:0" cx="106.51" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:55:6_2:0" cx="151.764" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:56:8_2:0" cx="197.019" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:57:10_2:0" cx="242.274" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:58:12_2:0" cx="287.529" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:59:2_4:0" cx="61.2548" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:60:4_4:0" cx="106.51" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:61:6_4:0" cx="151.764" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:62:8_4:0" cx="197.019" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:63:10_4:0" cx="242.274" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:64:12_4:0" cx="287.529" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:65:14_4:0" cx="332.784" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:66:0_6:0" cx="16" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:67:2_6:0" cx="61.2548" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:68:4_6:0" cx="106.51" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:69:6_6:0" cx="151.764" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:70:8_6:0" cx="197.019" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:71:10_6:0" cx="242.274" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:72:12_6:0" cx="287.529" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:73:2_8:0" cx="61.2548" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:74:4_8:0" cx="106.51" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:75:6_8:0" cx="151.764" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:76:8_8:0" cx="197.019" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:77:10_8:0" cx="242.274" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:78:12_8:0" cx="287.529" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:79:14_8:0" cx="332.784" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:80:0_10:0" cx="16" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:81:2_10:0" cx="61.2548" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:82:4_10:0" cx="106.51" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:83:6_10:0" cx="151.764" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:84:8_10:0" cx="197.019" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:85:10_10:0" cx="242.274" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:86:12_10:0" cx="287.529" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:87:2_12:0" cx="61.2548" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:88:4_12:0" cx="106.51" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:89:6_12:0" cx="151.764" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:90:8_12:0" cx="197.019" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:91:10_12:0" cx="242.274" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:92:12_12:0" cx="287.529" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:93:14_12:0" cx="332.784" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:94:2_14:0" cx="61.2548" cy="332.784" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:95:6_14:0" cx="151.764" cy="332.784" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:96:10_14:0" cx="242.274" cy="332.784" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:0:1_1:1" cx="422.29" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:1:3_1:1" cx="467.544" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:2:5_1:1" cx="512.799" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:3:7_1:1" cx="558.054" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:4:9_1:1" cx="603.309" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:5:11_1:1" cx="648.564" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:6:13_1:1" cx="693.819" cy="38.6274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:7:1_3:1" cx="422.29" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:8:3_3:1" cx="467.544" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:9:5_3:1" cx="512.799" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:10:7_3:1" cx="558.054" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:11:9_3:1" cx="603.309" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:12:11_3:1" cx="648.564" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:13:13_3:1" cx="693.819" cy="83.8822" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:14:1_5:1" cx="422.29" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:15:3_5:1" cx="467.544" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:16:5_5:1" cx="512.799" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:17:7_5:1" cx="558.054" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:18:9_5:1" cx="603.309" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:19:11_5:1" cx="648.564" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:20:13_5:1" cx="693.819" cy="129.137" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:21:1_7:1" cx="422.29" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:22:3_7:1" cx="467.544" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:23:5_7:1" cx="512.799" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:24:7_7:1" cx="558.054" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:25:9_7:1" cx="603.309" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:26:11_7:1" cx="648.564" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:27:13_7:1" cx="693.819" cy="174.392" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:28:1_9:1" cx="422.29" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:29:3_9:1" cx="467.544" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:30:5_9:1" cx="512.799" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:31:7_9:1" cx="558.054" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:32:9_9:1" cx="603.309" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:33:11_9:1" cx="648.564" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:34:13_9:1" cx="693.819" cy="219.647" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:35:1_11:1" cx="422.29" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:36:3_11:1" cx="467.544" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:37:5_11:1" cx="512.799" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:38:7_11:1" cx="558.054" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:39:9_11:1" cx="603.309" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:40:11_11:1" cx="648.564" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:41:13_11:1" cx="693.819" cy="264.902" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:42:1_13:1" cx="422.29" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:43:3_13:1" cx="467.544" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:44:5_13:1" cx="512.799" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:45:7_13:1" cx="558.054" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:46:9_13:1" cx="603.309" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:47:11_13:1" cx="648.564" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:48:13_13:1" cx="693.819" cy="310.156" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:49:4_0:1" cx="490.172" cy="16" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:50:8_0:1" cx="580.682" cy="16" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:51:12_0:1" cx="671.191" cy="16" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:52:0_2:1" cx="399.662" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:53:2_2:1" cx="444.917" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:54:4_2:1" cx="490.172" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:55:6_2:1" cx="535.427" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:56:8_2:1" cx="580.682" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:57:10_2:1" cx="625.936" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:58:12_2:1" cx="671.191" cy="61.2548" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:59:2_4:1" cx="444.917" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:60:4_4:1" cx="490.172" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:61:6_4:1" cx="535.427" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:62:8_4:1" cx="580.682" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:63:10_4:1" cx="625.936" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:64:12_4:1" cx="671.191" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:65:14_4:1" cx="716.446" cy="106.51" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:66:0_6:1" cx="399.662" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:67:2_6:1" cx="444.917" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:68:4_6:1" cx="490.172" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:69:6_6:1" cx="535.427" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:70:8_6:1" cx="580.682" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:71:10_6:1" cx="625.936" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:72:12_6:1" cx="671.191" cy="151.764" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:73:2_8:1" cx="444.917" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:74:4_8:1" cx="490.172" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:75:6_8:1" cx="535.427" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:76:8_8:1" cx="580.682" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:77:10_8:1" cx="625.936" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:78:12_8:1" cx="671.191" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:79:14_8:1" cx="716.446" cy="197.019" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:80:0_10:1" cx="399.662" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:81:2_10:1" cx="444.917" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:82:4_10:1" cx="490.172" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:83:6_10:1" cx="535.427" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:84:8_10:1" cx="580.682" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:85:10_10:1" cx="625.936" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:86:12_10:1" cx="671.191" cy="242.274" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:87:2_12:1" cx="444.917" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:88:4_12:1" cx="490.172" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:89:6_12:1" cx="535.427" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:90:8_12:1" cx="580.682" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:91:10_12:1" cx="625.936" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:92:12_12:1" cx="671.191" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:93:14_12:1" cx="716.446" cy="287.529" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:94:2_14:1" cx="444.917" cy="332.784" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:95:6_14:1" cx="535.427" cy="332.784" r="2" stroke="none" fill="black"/>
+<circle id="qubit_dot:96:10_14:1" cx="625.936" cy="332.784" r="2" stroke="none" fill="black"/>
+</g>
+<g id="tick_borders">
+<rect id="tick_border:0:0_0:0" x="0" y="0" width="348.784" height="348.784" stroke="black" fill="none"/>
+<rect id="tick_border:1:0_1:1" x="383.662" y="0" width="348.784" height="348.784" stroke="black" fill="none"/>
+</g>
+</svg>
