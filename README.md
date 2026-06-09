@@ -36,7 +36,7 @@ css_xzzx_simulation/
 │   └── visualization.py           # Result/collapse plots and circuit diagrams
 └── results/                       # Generated outputs (git-ignored)
     ├── samples.csv                # Raw Monte Carlo data (one row per (code, eta, distance, p))
-    ├── figures/                   # result_<eta>.png and collapse_<eta>.png
+    ├── figures/                   # result_<eta>.png, collapse_<eta>.png, and threshold.png
     └── diagrams/                  # Stim detector-slice and timeline SVGs
 ```
 
@@ -114,6 +114,11 @@ Three noise models are provided as separate circuit builders, all extending a co
 | **Code capacity** | one biased Pauli channel on data | perfect | effectively 1 |
 | **Phenomenological** | bulk channel every round | measurement flips | $d$ (default) |
 | **Circuit-level** | from operations only | reset + 2q gate + per-step idle + measurement | $d$ (default) |
+
+The default Monte Carlo sweep ([simulation.py](./src/simulation.py)) runs the **circuit-level**
+model — the most realistic of the three. The **code-capacity** builder is used only to render the
+circuit diagrams ([visualization.py](./src/visualization.py)), and the **phenomenological** builder is
+provided for reference but is not exercised by a default run.
 
 For a full explanation of all three models, the shared building blocks, and the design
 rationale behind them, see the dedicated
@@ -208,9 +213,9 @@ $|p - p_{\mathrm{th}}^{(0)}| \le w$ (zero-error points are dropped). The fit is 
 `absolute_sigma=True` so the covariance is a genuine statistical covariance, and a **parametric
 bootstrap** (resampling each point's error count from its Binomial law) gives a robust confidence
 interval on $p_{\mathrm{th}}$. `estimate_threshold` returns a `FitResult` carrying
-$p_{\mathrm{th}} \pm \delta$, $\nu \pm \delta$, the reduced $\chi^2$, and the window size; `main.py`
-also writes a **data-collapse figure** `collapse_<eta>.png` (all distances rescaled onto one curve)
-as visual evidence of the threshold.
+$p_{\mathrm{th}} \pm \delta$, $\nu \pm \delta$, the reduced $\chi^2$, and the window size;
+[visualization.py](./src/visualization.py) also writes a **data-collapse figure** `collapse_<eta>.png`
+(all distances rescaled onto one curve) as visual evidence of the threshold.
 
 **For the full method and its mathematical background — the FSS scaling hypothesis, the statistical
 model, the fitting and uncertainty procedure, and the assumptions/limitations — see the dedicated
@@ -240,8 +245,10 @@ It produces, under `--outdir`:
 - `figures/collapse_<eta>.png` — FSS data-collapse figure: every distance rescaled onto the axis
   $x = (p - p_{\mathrm{th}})\,d^{1/\nu}$, with the fitted $p_{\mathrm{th}} \pm \delta$, $\nu$, and
   reduced $\chi^2$ in each panel title (see [THRESHOLD.md](./docs/THRESHOLD.md)).
+- `figures/threshold.png` — summary plot of the fitted threshold $p_{\mathrm{th}} \pm \delta$ versus the
+  bias $\eta$ (log-scaled $\eta$-axis) for both codes — the culminating CSS-vs-XZZX comparison.
 - `diagrams/<code>_detslice.svg` and `diagrams/<code>_timeline.svg` — Stim detector-slice
-  and timeline visualizations of each code's circuit.
+  and timeline visualizations of each code's circuit (the code-capacity model).
 
 ## Dependencies
 

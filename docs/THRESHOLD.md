@@ -7,7 +7,9 @@ model of the data, the fitting and uncertainty procedure, and the assumptions an
 Files covered:
 - [threshold.py](../src/threshold.py) — `SamplePoint`, `FitResult`, `fss`, `estimate_threshold`
 - [simulation.py](../src/simulation.py) — `estimate_logical_error_rate`, `wilson_interval`
-- [main.py](../src/main.py) — sweep, threshold call, `result_<eta>.png` / `collapse_<eta>.png`
+- [visualization.py](../src/visualization.py) — the `estimate_threshold` calls and all figures:
+  `result_<eta>.png` / `collapse_<eta>.png` / `threshold.png` (`render_eta`, `draw_collapse`, `render_threshold`)
+- [main.py](../src/main.py) — entry point: orchestrates the sweep, saves `samples.csv`, then triggers rendering (`render_all`)
 
 This document is the companion to the project [README.md](../README.md) "Threshold Estimation"
 section and to [CIRCUIT_BUILDER.md](./CIRCUIT_BUILDER.md) (how the circuits are built).
@@ -129,8 +131,8 @@ $$
 
 It stays inside $[0,1]$, gives a sensible non-degenerate bound even at $k = 0$, and is well-behaved
 as $p_L \to 0$. We take the **half-width at $z = 1$** as the 1σ uncertainty $\sigma$ stored on each
-`SamplePoint`; the *same* 1σ interval is drawn as the plot error bars in [main.py](../src/main.py), so the
-figure and the fit weights use one consistent convention. Points with $k = 0$ (no failures observed)
+`SamplePoint`; the *same* 1σ interval is drawn as the plot error bars in [visualization.py](../src/visualization.py),
+so the figure and the fit weights use one consistent convention. Points with $k = 0$ (no failures observed)
 carry no usable $\sigma$ for a two-sided fit and are excluded from the FSS fit (§5); in the
 `result_<eta>.png` plot they are instead shown as Wilson upper-bound arrows.
 
@@ -160,8 +162,8 @@ minimized by `scipy.optimize.curve_fit`, with each residual weighted by the poin
 $\sigma_i$.
 
 **(2) Window and refit (pass 2).** Keep only points within
-$|p - p_{\mathrm{th}}^{(0)}| \le w$, with half-width $`w = \text{window\_frac} \cdot (p_{\max} - p_{\min})`$,
-and refit. Restricting to the near-threshold window is what makes the quadratic model legitimate
+$|p - p_{\mathrm{th}}^{(0)}| \le w$, with half-width $`w = \text{window\_frac} \cdot p_{\mathrm{th}}^{(0)}`$
+(default $\text{window\_frac} = 0.4$), and refit. Restricting to the near-threshold window is what makes the quadratic model legitimate
 (§3). The refit passes **`absolute_sigma=True`**, which tells `curve_fit` to treat the $\sigma_i$ as
 *real* uncertainties so that the returned covariance `pcov` is a genuine statistical covariance —
 **not** rescaled by the reduced $\chi^2$, as it would be by default. The covariance-based error bar
@@ -201,16 +203,16 @@ estimates. All of this is returned in a `FitResult`:
 FitResult(p_th, p_th_err, p_th_err_cov, p_th_err_boot, p_th_ci, nu, nu_err, chi2_red, n_points, window, popt, pcov)
 ```
 
-[main.py](../src/main.py) uses it to label the threshold line as $p_{\mathrm{th}} \pm \delta$ with a 1σ
-band (`axvspan`), and to title each panel of the collapse figure with $p_{\mathrm{th}}$, $\nu$, and
+[visualization.py](../src/visualization.py) uses it to label the threshold line as $p_{\mathrm{th}} \pm \delta$
+with a 1σ band (`axvspan`), and to title each panel of the collapse figure with $p_{\mathrm{th}}$, $\nu$, and
 $\chi^2_{\mathrm{red}}$.
 
 ---
 
 ## 6. Reading the data-collapse figure
 
-`collapse_<eta>.png` (built by `draw_collapse` in [main.py](../src/main.py)) is the primary validation
-plot. Each measured point is rescaled to $x = (p - p_{\mathrm{th}})d^{1/\nu}$ and plotted against
+`collapse_<eta>.png` (built by `draw_collapse` in [visualization.py](../src/visualization.py)) is the primary
+validation plot. Each measured point is rescaled to $x = (p - p_{\mathrm{th}})d^{1/\nu}$ and plotted against
 $p_L$, with the fitted parabola $a + bx + cx^2$ overlaid:
 
 - **Good threshold:** points from all distances $d$ land on the single overlaid curve (a clean
@@ -221,6 +223,11 @@ $p_L$, with the fitted parabola $a + bx + cx^2$ overlaid:
 
 The collapse plot and $\chi^2_{\mathrm{red}}$ together are what let a reader judge the quoted
 $p_{\mathrm{th}} \pm \delta$ rather than taking it on faith.
+
+Finally, `render_threshold` in [visualization.py](../src/visualization.py) writes the project's summary
+figure `threshold.png`: the fitted $p_{\mathrm{th}} \pm \delta$ of both codes plotted against the bias
+$\eta$ (log-scaled $\eta$-axis, $\eta = \infty$ placed one decade past the largest finite $\eta$). This is
+the culminating CSS-vs-XZZX comparison — it shows how each code's threshold moves with the bias.
 
 ---
 
