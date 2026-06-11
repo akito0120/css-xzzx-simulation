@@ -9,6 +9,7 @@ from code_builder import build_rotated_surface_code, build_xzzx_code
 from circuit_builder import CodeCapacityCircuitBuilder
 from simulation import wilson_interval
 from threshold import estimate_threshold, SamplePoint
+from rich.status import Status
 
 def fmt_eta(eta: float) -> str:
     if eta == float("inf"):
@@ -168,7 +169,7 @@ def render_threshold(pairs: List[Tuple[str, SamplePoint]], outdir: str):
     eta_to_x = lambda e: inf_x if e == float("inf") else e
 
     fig, ax = plt.subplots(figsize=(10, 7), dpi=600)
-    styles = {"css": ("tab:blue", "CSS"), "xzzx": ("tab:red", "XZZX")}
+    styles = {"css": ("tab:orange", "CSS"), "xzzx": ("tab:blue", "XZZX")}
 
     for code_type, pts in thresholds.items():
         if not pts:
@@ -192,17 +193,19 @@ def render_threshold(pairs: List[Tuple[str, SamplePoint]], outdir: str):
     fig.savefig(f"{outdir}/threshold.png")
     plt.close(fig)
 
-def render_all(pairs: List[Tuple[str, SamplePoint]], outdir) -> None:
-    os.makedirs(outdir, exist_ok=True)
-    mpl.rcParams["font.family"] = "serif"
-    mpl.rcParams["font.size"] = 12
-    mpl.rcParams["lines.linewidth"] = 1.5
+def render_all(pairs: List[Tuple[str, SamplePoint]], outdir):
+    with Status("Rendering results", spinner="arc"):
+        os.makedirs(outdir, exist_ok=True)
+        mpl.rcParams["font.family"] = "serif"
+        mpl.rcParams["font.size"] = 12
+        mpl.rcParams["lines.linewidth"] = 1.5
 
-    for eta in sorted({sp.eta for _, sp in pairs}):
-        eta_pairs = [(ct, sp) for ct, sp in pairs if sp.eta == eta]
-        render_eta(eta, eta_pairs, outdir)
+        for eta in sorted({sp.eta for _, sp in pairs}):
+            eta_pairs = [(ct, sp) for ct, sp in pairs if sp.eta == eta]
+            render_eta(eta, eta_pairs, outdir)
 
-    render_threshold(pairs, outdir)
+        render_threshold(pairs, outdir)
+        print(f"☑ Results saved to {outdir}")
 
 def render_diagrams(outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)

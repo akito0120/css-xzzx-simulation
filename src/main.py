@@ -6,17 +6,20 @@ from typing import List, Tuple
 from simulation import sweep, verify_distance_preservation
 from threshold import SamplePoint
 from visualization import render_all, render_diagrams
+from rich.status import Status
 
 CSV_FIELDS = [
     "code_type", "eta", "distance", "physical_error_rate",
-    "logical_error_rate", "standard_deviation", "logical_errors", "shots", "seed",
+    "logical_error_rate", "standard_deviation", "logical_errors", "shots",
 ]
 
 def save_samples(path: str, rows: List[dict]) -> None:
-    with open(path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
-        writer.writeheader()
-        writer.writerows(rows)
+    with Status("Saving samples", spinner="arc"):
+        with open(path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
+            writer.writeheader()
+            writer.writerows(rows)
+        print(f"☑ Samples saved to {path}")
 
 def row_to_pair(row: dict) -> Tuple[str, SamplePoint]:
     sp = SamplePoint(
@@ -39,8 +42,7 @@ def parse_args():
     ap.add_argument("--outdir", default="results")
     ap.add_argument("--max-shots", type=int, default=2_000_000)
     ap.add_argument("--target-errors", type=int, default=200)
-    ap.add_argument("--batch-size", type=int, default=100_000)
-    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--workers", type=int, default=os.cpu_count())
     ap.add_argument("--from-data", default=None)
     return ap.parse_args()
 
@@ -61,8 +63,7 @@ if __name__ == "__main__":
         rows = sweep(
             max_shots=args.max_shots,
             target_errors=args.target_errors,
-            batch_size=args.batch_size,
-            seed=args.seed
+            num_workers=args.workers,
         )
         save_samples(f"{args.outdir}/samples.csv", rows)
         render_all([row_to_pair(row) for row in rows], figures_outdir)

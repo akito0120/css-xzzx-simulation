@@ -5,3 +5,4 @@ scipy==1.17.1
 matplotlib==3.10.9
 rich==15.0
 sinter==1.16.0
+joblib==1.5.3
