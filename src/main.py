@@ -1,19 +1,15 @@
 import os
 import csv
 import argparse
-from typing import List, Tuple
 
 from simulation import sweep, verify_distance_preservation
 from threshold import SamplePoint
 from visualization import render_all, render_diagrams
 from rich.status import Status
 
-CSV_FIELDS = [
-    "code_type", "eta", "distance", "physical_error_rate",
-    "logical_error_rate", "standard_deviation", "logical_errors", "shots",
-]
+CSV_FIELDS = ["code", "eta", "d", "p", "pl", "sigma", "errors", "shots"]
 
-def save_samples(path: str, rows: List[dict]) -> None:
+def save_samples(path: str, rows: list[dict]) -> None:
     with Status("Saving samples", spinner="arc"):
         with open(path, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
@@ -21,19 +17,19 @@ def save_samples(path: str, rows: List[dict]) -> None:
             writer.writerows(rows)
         print(f"☑ Samples saved to {path}")
 
-def row_to_pair(row: dict) -> Tuple[str, SamplePoint]:
+def row_to_pair(row: dict) -> tuple[str, SamplePoint]:
     sp = SamplePoint(
         eta=float(row["eta"]),
-        distance=int(row["distance"]),
-        physical_error_rate=float(row["physical_error_rate"]),
-        logical_error_rate=float(row["logical_error_rate"]),
-        standard_deviation=float(row["standard_deviation"]),
-        logical_errors=int(row["logical_errors"]),
+        distance=int(row["d"]),
+        physical_error_rate=float(row["p"]),
+        logical_error_rate=float(row["pl"]),
+        standard_deviation=float(row["sigma"]),
+        logical_errors=int(row["errors"]),
         shots=int(row["shots"]),
     )
-    return row["code_type"], sp
+    return row["code"], sp
 
-def load_samples(path: str) -> List[Tuple[str, SamplePoint]]:
+def load_samples(path: str) -> list[tuple[str, SamplePoint]]:    
     with open(path, newline="") as f:
         return [row_to_pair(row) for row in csv.DictReader(f)]
 

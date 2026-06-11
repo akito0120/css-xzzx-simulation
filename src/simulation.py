@@ -51,10 +51,10 @@ def build_tasks() -> list[sinter.Task]:
             circuit=circuit,
             detector_error_model=dem,
             json_metadata={
-                "code_type": code_type,
+                "code": code_type,
                 "eta": str(eta),
-                "distance": distance,
-                "physical_error_rate": p,
+                "d": distance,
+                "p": p,
             },
         )
     
@@ -67,7 +67,6 @@ def sweep(max_shots: int, target_errors: int, num_workers: int) -> list[dict]:
     tasks = build_tasks()
 
     with Status("Sweeping", spinner="arc"):
-        rows: list[dict] = list()
         stats = sinter.collect(
             num_workers=num_workers,
             tasks=tasks,
@@ -75,22 +74,19 @@ def sweep(max_shots: int, target_errors: int, num_workers: int) -> list[dict]:
             max_shots=max_shots,
             max_errors=target_errors
         )
-    
-        for stat in stats:
-            meta = stat.json_metadata
-            shots = stat.shots
-            errors = stat.errors
-            p_L = errors / shots if shots > 0 else 0.0
+
+        rows: list[dict] = list()
+        for meta, shots, errors in [(stat.json_metadata, stat.shots, stat.errors) for stat in stats]:
+            pl = errors / shots if shots > 0 else 0.0
             low, high = wilson_interval(errors, shots, z=1.0)
-            sigma = (high - low) / 2.0
             rows.append({
-                "code_type": meta["code_type"],
+                "code": meta["code"],
                 "eta": float(meta["eta"]),
-                "distance": meta["distance"],
-                "physical_error_rate": meta["physical_error_rate"],
-                "logical_error_rate": p_L,
-                "standard_deviation": sigma,
-                "logical_errors": errors,
+                "d": meta["d"],
+                "p": meta["p"],
+                "pl": pl,
+                "sigma": (high - low) / 2.0,
+                "errors": errors,
                 "shots": shots,
             })
 
