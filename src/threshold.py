@@ -3,16 +3,7 @@ from typing import List, Tuple
 import warnings
 import numpy as np
 from scipy.optimize import curve_fit
-
-@dataclass(frozen=True)
-class SamplePoint:
-    eta: float
-    distance: int
-    physical_error_rate: float
-    logical_error_rate: float
-    standard_deviation: float
-    logical_errors: int
-    shots: int
+import pandas as pd
 
 @dataclass(frozen=True)
 class FitResult:
@@ -43,17 +34,17 @@ def fit(ps, ds, p_Ls, sigs, p0, absolute_sigma):
     )
 
 def estimate_threshold(
-    sample_points: List[SamplePoint],
+    points: pd.DataFrame,
     window_frac: float = 0.4,
     n_boot: int = 500,
     seed: int = 0,
 ) -> FitResult:
-    ps_all = np.array([s.physical_error_rate for s in sample_points])
-    ds_all = np.array([s.distance for s in sample_points])
-    p_Ls_all = np.array([s.logical_error_rate for s in sample_points])
-    sigs_all = np.array([s.standard_deviation for s in sample_points])
-    errs_all = np.array([s.logical_errors for s in sample_points])
-    shots_all = np.array([s.shots for s in sample_points])
+    ps_all = points["p"].to_numpy()
+    ds_all = points["d"].to_numpy()
+    p_Ls_all = points["pl"].to_numpy()
+    sigs_all = points["sigma"].to_numpy()
+    errs_all = points["errors"].to_numpy()
+    shots_all = points["shots"].to_numpy()
 
     # (1) keep only points that actually observed logical errors
     measured = errs_all > 0
@@ -130,3 +121,10 @@ def estimate_threshold(
         popt=tuple(float(v) for v in popt),
         pcov=tuple(tuple(float(v) for v in row) for row in pcov),
     )
+
+def estimate_all_thresholds(df: pd.DataFrame) -> dict[tuple[float, str], FitResult]:
+    thresholds: dict[tuple[float, str], FitResult] = dict()
+    for (eta, code), points in df.groupby(["eta", "code"]):
+        fit = estimate_threshold(points)
+        thresholds[(eta, code)] = fit
+    return thresholds

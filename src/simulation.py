@@ -6,6 +6,7 @@ from circuit_builder import CircuitLevelCircuitBuilder
 from config import ETAS, CODE_TYPES, DISTANCES, P_STEP, P_WINDOWS
 from rich.status import Status
 from joblib import Parallel, delayed
+import pandas as pd
 
 def physical_error_rates(eta: float, code_type: str) -> list[float]:
     if (eta, code_type) not in P_WINDOWS:
@@ -63,7 +64,7 @@ def build_tasks() -> list[sinter.Task]:
         print("☑ Tasks built successfully")
         return tasks
 
-def sweep(max_shots: int, target_errors: int, num_workers: int) -> list[dict]:
+def sweep(max_shots: int, target_errors: int, num_workers: int) -> pd.DataFrame:
     tasks = build_tasks()
 
     with Status("Sweeping", spinner="arc"):
@@ -76,7 +77,8 @@ def sweep(max_shots: int, target_errors: int, num_workers: int) -> list[dict]:
         )
 
         rows: list[dict] = list()
-        for meta, shots, errors in [(stat.json_metadata, stat.shots, stat.errors) for stat in stats]:
+        for stat in stats:
+            meta, shots, errors = stat.json_metadata, stat.shots, stat.errors
             pl = errors / shots if shots > 0 else 0.0
             low, high = wilson_interval(errors, shots, z=1.0)
             rows.append({
@@ -91,7 +93,7 @@ def sweep(max_shots: int, target_errors: int, num_workers: int) -> list[dict]:
             })
 
         print("☑ Sweeping completed")
-        return rows
+        return pd.DataFrame(rows)
 
 def verify_distance_preservation():
     def verify(eta: float, code_type: str, distance: int):
