@@ -1,8 +1,8 @@
-ETAS = [0.5, 1, 10, 30, 100, float("inf")]
-CODE_TYPES = ["css", "xzzx"]
-DISTANCES = [3, 5, 7, 9, 11]
+ETAS: list[float] = [0.5, 1, 10, 30, 100, float("inf")]
+CODE_TYPES: list[str] = ["css", "xzzx"]
+DISTANCES: list[int] = [3, 5, 7, 9, 11, 13, 15]
 
-P_STEP = 0.001
+P_STEP: float = 0.001
 P_WINDOWS: dict[tuple[float, str], tuple[float, float]] = {
     (0.5, "css"): (0.001, 0.02),
     (0.5, "xzzx"): (0.001, 0.02),
