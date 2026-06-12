@@ -77,6 +77,7 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
 
         # Remaining noisy rounds
         # Unlike phenomenological, data noise comes from gate and idle errors in syndrome_meas.
+        # TODO: use REPEAT
         for _ in range(self.rounds - 1):
             self.current_round += 1
             self.syndrome_meas()
