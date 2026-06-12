@@ -31,15 +31,15 @@ def wilson_interval(errors: int, shots: int, z: float = 1.96) -> Tuple[float, fl
 
     return low, high
 
-def build_tasks() -> list[sinter.Task]:
-    task_params: list[tuple[float, str, int, float]] = list()
+def generate_params():
     for eta in ETAS:
         for code_type in CODE_TYPES:
             ps = physical_error_rates(eta, code_type)
             for distance in DISTANCES:
                 for p in ps:
-                    task_params.append((eta, code_type, distance, p))
+                    yield (eta, code_type, distance, p)
 
+def generate_tasks():
     def build_task(param: tuple[float, str, int, float]) -> sinter.Task:
         eta, code_type, distance, p = param
         code = build_code(code_type, distance)
@@ -58,22 +58,18 @@ def build_tasks() -> list[sinter.Task]:
                 "p": p,
             },
         )
-    
-    with Status("Building tasks", spinner="arc"):
-        tasks = Parallel(n_jobs=-1)(delayed(build_task)(param) for param in task_params)
-        print("☑ Tasks built successfully")
-        return tasks
+
+    for param in generate_params():
+        yield build_task(param)
 
 def sweep(max_shots: int, target_errors: int, num_workers: int) -> pd.DataFrame:
-    tasks = build_tasks()
-
     with Status("Sweeping", spinner="arc"):
         stats = sinter.collect(
             num_workers=num_workers,
-            tasks=tasks,
+            tasks=generate_tasks(),
             decoders=["pymatching"],
             max_shots=max_shots,
-            max_errors=target_errors
+            max_errors=target_errors,
         )
 
         rows: list[dict] = list()
