@@ -30,12 +30,12 @@ def fit(ps, ds, p_Ls, sigs, p0, absolute_sigma):
     return curve_fit(
         fss, (ps, ds), p_Ls,
         sigma=sigs, p0=p0,
-        absolute_sigma=absolute_sigma, maxfev=20000,
+        absolute_sigma=absolute_sigma, maxfev=30000,
     )
 
 def estimate_threshold(
     points: pd.DataFrame,
-    window_frac: float = 0.4,
+    window_frac: float = 0.25,
     n_boot: int = 500,
     seed: int = 0,
 ) -> FitResult:
