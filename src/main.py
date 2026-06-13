@@ -48,6 +48,7 @@ if __name__ == "__main__":
             num_workers=args.workers,
         )
         df.to_csv(f"{args.outdir}/samples.csv", index=False)
+        print(f"☑ Samples saved to {args.outdir}/samples.csv")
 
     render_figures(df, figures_outdir)
     render_diagrams(diagrams_outdir)
