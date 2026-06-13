@@ -70,6 +70,7 @@ def sweep(max_shots: int, target_errors: int, num_workers: int) -> pd.DataFrame:
             decoders=["pymatching"],
             max_shots=max_shots,
             max_errors=target_errors,
+            max_batch_size=1024
         )
 
         rows: list[dict] = list()

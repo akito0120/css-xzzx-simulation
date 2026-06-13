@@ -11,7 +11,7 @@ def parse_args():
     ap.add_argument("--outdir", default="results")
     ap.add_argument("--max-shots", type=int, default=1_000_000)
     ap.add_argument("--target-errors", type=int, default=20000)
-    ap.add_argument("--workers", type=int, default=max(os.cpu_count() - 2, 1))
+    ap.add_argument("--workers", type=int, default=max(os.cpu_count() - 4, 1))
     ap.add_argument("--from-data", default=None)
     return ap.parse_args()
 
