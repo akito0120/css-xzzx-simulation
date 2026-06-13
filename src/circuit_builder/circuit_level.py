@@ -77,12 +77,10 @@ class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
 
         # Remaining noisy rounds
         # Unlike phenomenological, data noise comes from gate and idle errors in syndrome_meas.
-        # TODO: use REPEAT
-        for _ in range(self.rounds - 1):
-            self.current_round += 1
+        def round_body():
             self.syndrome_meas()
             self.consecutive_round_detectors()
-            self.circuit.append("TICK")
+        self.repeat_rounds(self.rounds - 1, round_body)
 
         # Final data readout (with readout error), time-boundary detectors and logical observable
         data_record = self.data_readout(flip=self.p_meas)

@@ -25,12 +25,11 @@ class PhenomenologicalCircuitBuilder(NoisyMeasurementCircuitBuilder):
         self.circuit.append("TICK")
 
         # Noisy rounds
-        for _ in range(self.rounds):
-            self.current_round += 1
+        def round_body():
             self.data_round_noise()
             self.syndrome_meas(flip=self.p_meas)
             self.consecutive_round_detectors()
-            self.circuit.append("TICK")
+        self.repeat_rounds(self.rounds, round_body)
 
         # Final perfect data readout, time-boundary detectors and logical observable
         data_record = self.data_readout()

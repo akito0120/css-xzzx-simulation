@@ -17,6 +17,7 @@ class BaseCircuitBuilder:
 
     record_counter: int
     current_round: int
+    coord_base: int
     ancilla_record: Dict[Tuple[Coord, int], int]
     ancilla_order: List[Coord]
 
@@ -27,6 +28,7 @@ class BaseCircuitBuilder:
 
         self.record_counter = 0
         self.current_round = 0
+        self.coord_base = 0
         self.ancilla_record = {}
 
     def rel(self, abs_idx: int) -> stim.GateTarget:
@@ -85,7 +87,7 @@ class BaseCircuitBuilder:
             self.circuit.append(
                 "DETECTOR",
                 [self.rel(d_now), self.rel(d_prev)],
-                [ancilla[0], ancilla[1], self.current_round],
+                [ancilla[0], ancilla[1], self.current_round - self.coord_base],
             )
 
     def data_readout(self, flip: float = 0.0) -> Dict[Coord, int]:
