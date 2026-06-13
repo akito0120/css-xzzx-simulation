@@ -16,6 +16,18 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+def generate_pl_colors(n_dist: int):
+    return {
+        "css": plt.cm.plasma(np.linspace(0.2, 0.8, n_dist + 1)),
+        "xzzx": plt.cm.viridis(np.linspace(0.2, 0.8, n_dist + 1))
+    }
+
+def generate_p_th_colors():
+    return {
+        "css": plt.cm.plasma(0.5),
+        "xzzx": plt.cm.viridis(0.5)
+    }
+
 def fmt_eta(eta: float) -> str:
     if eta == float("inf"):
         return "inf"
@@ -101,18 +113,16 @@ def render_eta(eta: float, df: pd.DataFrame, outdir: str) -> None:
     eta_label = fmt_eta(eta)
 
     n_dist = df["d"].nunique()
-    colors = {
-        "css": plt.cm.plasma(np.linspace(0.2, 0.8, n_dist + 1)),
-        "xzzx": plt.cm.viridis(np.linspace(0.2, 0.8, n_dist + 1))
-    }
+    colors = generate_pl_colors(n_dist)
     fig, ax = plt.subplots(figsize=(12, 8), dpi=600)
     for code, code_df in df.groupby("code"):
         for i, (d, points) in enumerate(code_df.groupby("d")):
             draw_pl(ax, f"{code}_d{d}", points.sort_values("p", ascending=True), colors[code][i])
 
     # Draw thresholds (vertical line + 1-sigma uncertainty band)
+    p_th_colors = generate_p_th_colors()
     for code, points in df.groupby("code"):
-        color = colors[code][points["d"].nunique()]
+        color = p_th_colors[code]
         fit = estimate_threshold(points)
         ax.axvline(x=fit.p_th, linestyle="--", label=f"{code} p_th = {fit.p_th:.6f} ± {fit.p_th_err:.6f}", color=color)
         ax.axvspan(fit.p_th - fit.p_th_err, fit.p_th + fit.p_th_err, alpha=0.1, color=color)
@@ -137,7 +147,7 @@ def render_threshold(points: pd.DataFrame, outdir: str):
     etas = points["eta"].unique().tolist()
 
     # (eta, code) -> (eta, threshold, threshold error)
-    thresholds: Dict[str, List[Tuple[float, float, float]]] = {"css": [], "xzzx": []}
+    thresholds: dict[str, list[tuple[float, float, float]]] = {"css": [], "xzzx": []}
     for (eta, code), fit_points in points.groupby(["eta", "code"]):
         if fit_points.empty:
             continue
@@ -150,16 +160,15 @@ def render_threshold(points: pd.DataFrame, outdir: str):
     eta_to_x = lambda e: inf_x if e == float("inf") else e
 
     fig, ax = plt.subplots(figsize=(10, 7), dpi=600)
-    styles = {"css": ("darkorange", "CSS"), "xzzx": ("limegreen", "XZZX")}
+    colors = generate_p_th_colors()
 
-    for code_type, pts in thresholds.items():
+    for code, pts in thresholds.items():
         if not pts:
             continue
-        color, label = styles[code_type]
         xs = [eta_to_x(e) for e, _, _ in pts]
         p_ths = [pth for _, pth, _ in pts]
         errs = [err for _, _, err in pts]
-        ax.errorbar(xs, p_ths, yerr=errs, marker="o", linestyle="-", capsize=3, color=color, label=label)
+        ax.errorbar(xs, p_ths, yerr=errs, marker="o", linestyle="-", capsize=3, color=colors[code], label=code)
 
     ax.set_xscale("log")
     ax.set_xticks([eta_to_x(e) for e in etas])
