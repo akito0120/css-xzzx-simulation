@@ -2,7 +2,6 @@ import os
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from typing import List, Tuple, Dict
 
 from config import DISTANCES
 from code_builder import build_rotated_surface_code, build_xzzx_code
@@ -42,11 +41,12 @@ def draw_collapse(path, eta, df: pd.DataFrame, colors):
         if code_df.empty:
             continue
         fit = estimate_threshold(code_df)
+        D, mu = fit.popt[5], fit.popt[6]
         x_all, pL_all = [], []
         for i, (d, d_df) in enumerate(code_df.groupby("d")):
             ps_arr = d_df["p"].to_numpy()
             ds_arr = d_df["d"].to_numpy()
-            p_Ls = d_df["pl"].to_numpy()
+            p_Ls = d_df["pl"].to_numpy() - D * ds_arr ** (-1.0 / mu)
             errs = d_df["errors"].to_numpy()
             measured = errs > 0
             x = (ps_arr - fit.p_th) * ds_arr ** (1.0 / fit.nu)
@@ -67,8 +67,8 @@ def draw_collapse(path, eta, df: pd.DataFrame, colors):
         ax.set_ylabel("Logical Error Rate")
         ax.set_title(
             f"{name}: p_th={fit.p_th:.4f}±{fit.p_th_err:.4f}, "
-            f"ν={fit.nu:.2f}±{fit.nu_err:.2f}, χ²_red={fit.chi2_red:.2f}, "
-            f"n={fit.n_points}"
+            f"ν={fit.nu:.2f}±{fit.nu_err:.2f}, μ={fit.mu:.2f}, "
+            f"χ²_red={fit.chi2_red:.2f}, n={fit.n_points} (|x|≤{fit.x_max:.2g})"
         )
         ax.grid(True, alpha=0.4)
         ax.legend(fontsize=8)
