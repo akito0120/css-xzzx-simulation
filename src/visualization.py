@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import matplotlib as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 from config import DISTANCES
@@ -35,7 +36,7 @@ def fmt_eta(eta: float) -> str:
 def draw_collapse(path, eta, df: pd.DataFrame, colors):
     # Rescale each point to x = (p - p_th) * d^(1/nu) and plot p_L against it
     # Under the FSS ansatz all distances collapse onto a single curve
-    fig, axes = plt.subplots(1, 2, figsize=(18, 8), dpi=600)
+    fig, axes = plt.subplots(1, 2, figsize=(22, 10), dpi=600)
     for ax, (code, name) in zip(axes, [("css", "CSS"), ("xzzx", "XZZX")]):
         code_df = df[df["code"] == code]
         if code_df.empty:
@@ -137,10 +138,10 @@ def render_eta(eta: float, df: pd.DataFrame, outdir: str) -> None:
     ax.grid(True, which="both", alpha=0.5)
     ax.legend()
 
-    plt.savefig(f"{outdir}/result_{eta_label}.png")
+    plt.savefig(f"{outdir}/result_{eta_label}.pdf")
     plt.close(fig)
 
-    draw_collapse(f"{outdir}/collapse_{eta_label}.png", eta_label, df, colors)
+    draw_collapse(f"{outdir}/collapse_{eta_label}.pdf", eta_label, df, colors)
 
 def render_threshold(points: pd.DataFrame, outdir: str):
     os.makedirs(outdir, exist_ok=True)
@@ -180,7 +181,7 @@ def render_threshold(points: pd.DataFrame, outdir: str):
     ax.grid(True, which="both", alpha=0.4)
     ax.legend()
 
-    fig.savefig(f"{outdir}/threshold.png")
+    fig.savefig(f"{outdir}/threshold.pdf")
     plt.close(fig)
 
 def render_figures(df: pd.DataFrame, outdir):
