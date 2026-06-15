@@ -36,7 +36,7 @@ def fss(X, p_th, nu, a, b, c, D, mu):
     x = (p - p_th) * d ** (1.0 / nu)
     return a + (b * x) + (c * x * x) + D * d ** (-1.0 / mu)
 
-def bounds(ps):
+def get_bounds(ps):
     # Keep p_th inside the swept p-range and the two exponents positive/finite so
     # the d^(1/nu) and d^(-1/mu) factors stay well behaved; a, b, c, D are free.
     p_hi = float(np.max(ps))
@@ -104,7 +104,7 @@ def estimate_threshold(
     # guard against zero/NaN weights breaking the least squares
     sigs = np.where(sigs > 0, sigs, np.nanmin(sigs[sigs > 0]) if np.any(sigs > 0) else 1.0)
 
-    bounds = bounds(ps)
+    bounds = get_bounds(ps)
     min_points = N_PARAMS + WINDOW_MARGIN
 
     # (2) Coarse fit to locate the threshold and a first nu
