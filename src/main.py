@@ -13,6 +13,7 @@ def parse_args():
     ap.add_argument("--target-errors", type=int, default=20000)
     ap.add_argument("--workers", type=int, default=max(os.cpu_count() - 4, 1))
     ap.add_argument("--decoder", choices=["mwpm", "bp"], default="mwpm")
+    ap.add_argument("--print-progress", action="store_true")
     ap.add_argument("--from-data", default=None)
     return ap.parse_args()
 
@@ -49,6 +50,7 @@ if __name__ == "__main__":
             target_errors=args.target_errors,
             num_workers=args.workers,
             decoder=args.decoder,
+            print_progress=args.print_progress,
         )
         df.to_csv(f"{args.outdir}/samples.csv", index=False)
         print(f"☑ Samples saved to {args.outdir}/samples.csv")

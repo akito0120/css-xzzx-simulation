@@ -72,7 +72,7 @@ def generate_tasks():
     for param in generate_params():
         yield build_task(param)
 
-def sweep(max_shots: int, target_errors: int, num_workers: int, decoder: str) -> pd.DataFrame:
+def sweep(max_shots: int, target_errors: int, num_workers: int, decoder: str, print_progress: bool = False) -> pd.DataFrame:
     decoder, custom_decoders = resolve_decoder(decoder)
     with Status("Sweeping", spinner="arc"):
         stats = sinter.collect(
@@ -82,7 +82,8 @@ def sweep(max_shots: int, target_errors: int, num_workers: int, decoder: str) ->
             custom_decoders=custom_decoders,
             max_shots=max_shots,
             max_errors=target_errors,
-            max_batch_size=1024
+            max_batch_size=1024,
+            print_progress=print_progress
         )
 
         rows: list[dict] = list()
