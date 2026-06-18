@@ -7,6 +7,7 @@ from config import ETAS, CODE_TYPES, DISTANCES, BASES, P_STEP, P_WINDOWS
 from rich.status import Status
 from joblib import Parallel, delayed
 from beliefmatching import BeliefMatchingSinterDecoder
+from uf_decoder import UnionFindSinterDecoder
 import pandas as pd
 
 def resolve_decoder(decoder: str) -> tuple[str, Optional[dict]]:
@@ -14,7 +15,9 @@ def resolve_decoder(decoder: str) -> tuple[str, Optional[dict]]:
         return "pymatching", None
     if decoder == "bp":
         return "beliefmatching", {"beliefmatching": BeliefMatchingSinterDecoder()}
-    raise ValueError(f"Unknown decoder {decoder!r}; expected 'mwpm' or 'bp'")
+    if decoder == "uf":
+        return "unionfind", {"unionfind": UnionFindSinterDecoder()}
+    raise ValueError(f"Unknown decoder {decoder!r}; expected 'mwpm', 'bp' or 'uf'")
 
 def physical_error_rates(eta: float, code_type: str) -> list[float]:
     if (eta, code_type) not in P_WINDOWS:

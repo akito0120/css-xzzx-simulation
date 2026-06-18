@@ -12,7 +12,7 @@ def parse_args():
     ap.add_argument("--max-shots", type=int, default=1_000_000)
     ap.add_argument("--target-errors", type=int, default=20000)
     ap.add_argument("--workers", type=int, default=max(os.cpu_count() - 4, 1))
-    ap.add_argument("--decoder", choices=["mwpm", "bp"], default="mwpm")
+    ap.add_argument("--decoder", choices=["mwpm", "bp", "uf"], default="mwpm")
     ap.add_argument("--print-progress", action="store_true")
     ap.add_argument("--from-data", default=None)
     return ap.parse_args()
