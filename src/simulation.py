@@ -1,12 +1,20 @@
 import sinter
 import numpy as np
-from typing import Tuple
+from typing import Optional
 from code_builder import build_code
 from circuit_builder import CircuitLevelCircuitBuilder
 from config import ETAS, CODE_TYPES, DISTANCES, BASES, P_STEP, P_WINDOWS
 from rich.status import Status
 from joblib import Parallel, delayed
+from beliefmatching import BeliefMatchingSinterDecoder
 import pandas as pd
+
+def resolve_decoder(decoder: str) -> tuple[str, Optional[dict]]:
+    if decoder == "mwpm":
+        return "pymatching", None
+    if decoder == "bp":
+        return "beliefmatching", {"beliefmatching": BeliefMatchingSinterDecoder()}
+    raise ValueError(f"Unknown decoder {decoder!r}; expected 'mwpm' or 'bp'")
 
 def physical_error_rates(eta: float, code_type: str) -> list[float]:
     if (eta, code_type) not in P_WINDOWS:
@@ -14,7 +22,7 @@ def physical_error_rates(eta: float, code_type: str) -> list[float]:
     p_min, p_max = P_WINDOWS[(eta, code_type)]
     return list(np.arange(p_min, p_max + P_STEP * 1e-9, P_STEP))
 
-def wilson_interval(errors: int, shots: int, z: float = 1.96) -> Tuple[float, float]:
+def wilson_interval(errors: int, shots: int, z: float = 1.96) -> tuple[float, float]:
     # Wilson interval for a binomial proportion
     if shots <= 0:
         return 0.0, 0.0
@@ -64,12 +72,14 @@ def generate_tasks():
     for param in generate_params():
         yield build_task(param)
 
-def sweep(max_shots: int, target_errors: int, num_workers: int) -> pd.DataFrame:
+def sweep(max_shots: int, target_errors: int, num_workers: int, decoder: str) -> pd.DataFrame:
+    decoder, custom_decoders = resolve_decoder(decoder)
     with Status("Sweeping", spinner="arc"):
         stats = sinter.collect(
             num_workers=num_workers,
             tasks=generate_tasks(),
-            decoders=["pymatching"],
+            decoders=[decoder],
+            custom_decoders=custom_decoders,
             max_shots=max_shots,
             max_errors=target_errors,
             max_batch_size=1024
