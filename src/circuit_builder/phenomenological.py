@@ -4,7 +4,6 @@ from .shared import biased_pauli_rates
 
 class PhenomenologicalCircuitBuilder(NoisyMeasurementCircuitBuilder):
     # Noise model: phenomenological
-    # Memory basis: X
 
     def data_round_noise(self) -> stim.Circuit:
         # Per-round bulk data noise (the phenomenological data error).

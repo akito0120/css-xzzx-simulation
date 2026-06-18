@@ -4,7 +4,6 @@ from .shared import biased_pauli_rates, biased_two_qubit_rates, build_cnot_sched
 
 class CircuitLevelCircuitBuilder(NoisyMeasurementCircuitBuilder):
     # Noise model: circuit-level (biased-SD6)
-    # Memory basis: X
 
     def syndrome_meas(self) -> stim.Circuit:
         # One full noisy round of syndrome extraction

@@ -6,12 +6,12 @@ from .shared import CGATE
 
 class BaseCircuitBuilder:
     # Common machinery shared by every noise-model circuit builder.
-    # Memory basis: X
     # Subclasses implement build() and reuse the helpers below
 
     code: QecCode
     p: float
     eta: float
+    basis: str
 
     record_counter: int
     current_round: int
@@ -19,10 +19,13 @@ class BaseCircuitBuilder:
     ancilla_record: Dict[Tuple[Coord, int], int]
     ancilla_order: List[Coord]
 
-    def __init__(self, code: QecCode, p: float, eta: float):
+    def __init__(self, code: QecCode, p: float, eta: float, basis: str = "X"):
+        if basis not in ("X", "Z"):
+            raise ValueError(f"basis must be 'X' or 'Z', got {basis!r}")
         self.code = code
         self.p = p
         self.eta = eta
+        self.basis = basis
 
         self.record_counter = 0
         self.current_round = 0
@@ -33,12 +36,17 @@ class BaseCircuitBuilder:
         # Return the relative index of a measurement result
         return stim.target_rec(abs_idx - self.record_counter)
 
+    def prep_basis_of(self, q: Coord) -> str:
+        # Per-qubit prep/measurement basis
+        conj = {"X": "Z", "Z": "X"}
+        return conj[self.basis] if q in self.code.hset else self.basis
+
     def data_basis_partition(self):
-        # Split data qubits by memory basis: X basis off hset, Z basis on hset.
+        # Split data qubits by their prep/measurement basis (X-prepared vs Z-prepared)
         x_basis = [(coord, idx) for coord, idx in self.code.data_qubits.items()
-                   if coord not in self.code.hset]
+                   if self.prep_basis_of(coord) == "X"]
         z_basis = [(coord, idx) for coord, idx in self.code.data_qubits.items()
-                   if coord in self.code.hset]
+                   if self.prep_basis_of(coord) == "Z"]
         return x_basis, z_basis
 
     def prep_data(self) -> stim.Circuit:
@@ -116,8 +124,9 @@ class BaseCircuitBuilder:
         return circuit, data_record
 
     def define_observable(self, data_record: Dict[Coord, int]) -> stim.Circuit:
-        # The logical-X observable: parity of the final data measurements on logical_x.
+        # The logical observable
         circuit = stim.Circuit()
-        observable_targets = [self.rel(data_record[dc]) for dc in self.code.logical_x]
+        logical = self.code.logical_x if self.basis == "X" else self.code.logical_z
+        observable_targets = [self.rel(data_record[dc]) for dc in logical]
         circuit.append("OBSERVABLE_INCLUDE", observable_targets, 0)
         return circuit
