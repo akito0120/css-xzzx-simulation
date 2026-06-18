@@ -24,6 +24,7 @@ sample_schema = pa.DataFrameSchema({
     "sigma": pa.Column(float),
     "errors": pa.Column(int),
     "shots": pa.Column(int),
+    "basis": pa.Column(str, pa.Check.isin(["x", "z"])),
 })
 
 if __name__ == "__main__":
