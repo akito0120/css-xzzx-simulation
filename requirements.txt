@@ -8,3 +8,4 @@ sinter==1.16.0
 joblib==1.5.3
 pandas==2.3.3
 pandera==0.31.1
+beliefmatching==0.2.0
