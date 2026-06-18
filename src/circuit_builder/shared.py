@@ -3,18 +3,20 @@ from code_builder import QecCode, Coord
 
 CGATE = {"X": "CX", "Y": "CY", "Z": "CZ"}
 
-# Distance-preserving 4-step CNOT schedule
-# Maps a leg's relative offset (dx, dy) -> time step
-# Adding a Z-memory experiment would require revisiting this (the standard X/Z-transposed schedule).
-STEP_OF_OFFSET = {(-1, -1): 0, (+1, -1): 1, (-1, +1): 2, (+1, +1): 3}
+# Distance-preserving 4-step CNOT schedule.
+# Maps a leg's relative offset (dx, dy) -> time step.
+STEP_OF_OFFSET_ROW = {(-1, -1): 0, (+1, -1): 1, (-1, +1): 2, (+1, +1): 3}  # Row-major
+STEP_OF_OFFSET_COL = {(-1, -1): 0, (-1, +1): 1, (+1, -1): 2, (+1, +1): 3}  # Column-major
 
 def build_cnot_schedule(code: QecCode) -> Dict[Coord, List[Optional[Coord]]]:
     # Assign each stabilizer's legs to one of 4 parallel time steps
     schedule: Dict[Coord, List[Optional[Coord]]] = {}
     for (x, y), legs in code.stabilizers.items():
+        parity = ((x // 2) + (y // 2)) % 2
+        step_of_offset = STEP_OF_OFFSET_ROW if parity == 0 else STEP_OF_OFFSET_COL
         steps: List[Optional[Coord]] = [None, None, None, None]
         for (dx_coord, dy_coord) in legs:
-            steps[STEP_OF_OFFSET[(dx_coord - x, dy_coord - y)]] = (dx_coord, dy_coord)
+            steps[step_of_offset[(dx_coord - x, dy_coord - y)]] = (dx_coord, dy_coord)
         schedule[(x, y)] = steps
     return schedule
 

@@ -3,7 +3,7 @@ import numpy as np
 from typing import Tuple
 from code_builder import build_code
 from circuit_builder import CircuitLevelCircuitBuilder
-from config import ETAS, CODE_TYPES, DISTANCES, P_STEP, P_WINDOWS
+from config import ETAS, CODE_TYPES, DISTANCES, BASES, P_STEP, P_WINDOWS
 from rich.status import Status
 from joblib import Parallel, delayed
 import pandas as pd
@@ -37,13 +37,14 @@ def generate_params():
             ps = physical_error_rates(eta, code_type)
             for distance in DISTANCES:
                 for p in ps:
-                    yield (eta, code_type, distance, p)
+                    for basis in BASES:
+                        yield (eta, code_type, distance, p, basis)
 
 def generate_tasks():
-    def build_task(param: tuple[float, str, int, float]) -> sinter.Task:
-        eta, code_type, distance, p = param
+    def build_task(param: tuple[float, str, int, float, str]) -> sinter.Task:
+        eta, code_type, distance, p, basis = param
         code = build_code(code_type, distance)
-        circuit = CircuitLevelCircuitBuilder(code, p, eta).build()
+        circuit = CircuitLevelCircuitBuilder(code, p, eta, basis=basis.upper()).build()
         dem = circuit.detector_error_model(
             decompose_errors=True,
             approximate_disjoint_errors=True
@@ -56,6 +57,7 @@ def generate_tasks():
                 "eta": str(eta),
                 "d": distance,
                 "p": p,
+                "basis": basis,
             },
         )
 
@@ -87,24 +89,26 @@ def sweep(max_shots: int, target_errors: int, num_workers: int) -> pd.DataFrame:
                 "sigma": (high - low) / 2.0,
                 "errors": errors,
                 "shots": shots,
+                "basis": meta["basis"],
             })
 
         print("☑ Sweeping completed")
         return pd.DataFrame(rows)
 
 def verify_distance_preservation():
-    def verify(eta: float, code_type: str, distance: int):
+    def verify(eta: float, code_type: str, distance: int, basis: str):
         code = build_code(code_type, distance)
-        circuit = CircuitLevelCircuitBuilder(code, 0.1, eta).build()
+        circuit = CircuitLevelCircuitBuilder(code, 0.1, eta, basis=basis.upper()).build()
         err = circuit.shortest_graphlike_error()
         if len(err) != distance:
             raise AssertionError(f"Graphlike fault distance {len(err)} != code distance {distance}")
 
     with Status("Verifying circuits", spinner="arc"):
         Parallel(n_jobs=-1)(
-            delayed(verify)(eta, code_type, distance)
+            delayed(verify)(eta, code_type, distance, basis)
             for eta in ETAS
             for code_type in CODE_TYPES
             for distance in DISTANCES
+            for basis in BASES
         )
         print("☑ Circuit verification completed")

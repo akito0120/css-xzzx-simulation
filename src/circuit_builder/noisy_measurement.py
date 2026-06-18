@@ -12,8 +12,9 @@ class NoisyMeasurementCircuitBuilder(BaseCircuitBuilder):
     p_meas: float
 
     def __init__(self, code: QecCode, p: float, eta: float,
-                 rounds: Optional[int] = None, p_meas: Optional[float] = None):
-        super().__init__(code, p, eta)
+                 rounds: Optional[int] = None, p_meas: Optional[float] = None,
+                 basis: str = "X"):
+        super().__init__(code, p, eta, basis=basis)
         self.rounds = code.distance if rounds is None else rounds
         self.p_meas = p if p_meas is None else p_meas
 
@@ -51,7 +52,7 @@ class NoisyMeasurementCircuitBuilder(BaseCircuitBuilder):
         # Mirror of final_boundary_detectors at the bottom time boundary
         # Use if data prep is noisy
         prep_basis: Dict[Coord, str] = {
-            q: ("Z" if q in self.code.hset else "X") for q in self.code.data_qubits
+            q: self.prep_basis_of(q) for q in self.code.data_qubits
         }
         eligible: List[Coord] = [
             anc for anc, legs in self.code.stabilizers.items()
@@ -64,10 +65,10 @@ class NoisyMeasurementCircuitBuilder(BaseCircuitBuilder):
         return circuit
 
     def final_boundary_detectors(self, data_record: Dict[Coord, int]) -> stim.Circuit:
-        # Per-qubit preparation/measurement basis for X-memory
-        # |+> (basis X) off hset, |0> (basis Z) on hset
+        # Per-qubit preparation/measurement basis for the selected memory basis
+        # Memory basis off hset, conjugate basis on hset
         prep_basis: Dict[Coord, str] = {
-            q: ("Z" if q in self.code.hset else "X") for q in self.code.data_qubits
+            q: self.prep_basis_of(q) for q in self.code.data_qubits
         }
 
         # "eligible" stabilizers = checks deterministic under that preparation

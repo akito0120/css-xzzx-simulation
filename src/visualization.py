@@ -79,7 +79,7 @@ def draw_collapse(path, eta, df: pd.DataFrame, colors):
     fig.savefig(path)
     plt.close(fig)
 
-def draw_pl(ax, label, points: pd.DataFrame, color):
+def draw_pl(ax, label, points: pd.DataFrame, color, linestyle="-", marker="o"):
     # Draw logical error rates
     # Error bars are the 1-sigma Wilson interval (z=1.0)
     ps = points["p"].to_numpy()
@@ -97,7 +97,7 @@ def draw_pl(ax, label, points: pd.DataFrame, color):
         ax.errorbar(
             ps[measured], pls[measured],
             yerr=[pls[measured] - lows[measured], highs[measured] - pls[measured]],
-            marker='o', linestyle='-', capsize=3,
+            marker=marker, linestyle=linestyle, capsize=3,
             label=label, color=color,
         )
 
@@ -142,6 +142,37 @@ def render_eta(eta: float, df: pd.DataFrame, outdir: str) -> None:
     plt.close(fig)
 
     draw_collapse(f"{outdir}/collapse_{eta_label}.pdf", eta_label, df, colors)
+
+def render_eta_basis(eta: float, df: pd.DataFrame, outdir: str) -> None:
+    # Intra-code comparison of X- vs Z-memory logical error rate
+    # Evidence that X-memory is the worst-case basis (its pl sits above Z-memory's)
+    eta_label = fmt_eta(eta)
+
+    n_dist = df["d"].nunique()
+    colors = generate_pl_colors(n_dist)
+    fig, axes = plt.subplots(1, 2, figsize=(22, 8), dpi=600)
+    basis_style = {"x": ("-", "o"), "z": ("--", "s")}
+
+    for ax, (code, name) in zip(axes, [("css", "CSS"), ("xzzx", "XZZX")]):
+        code_df = df[df["code"] == code]
+        for i, (d, d_df) in enumerate(code_df.groupby("d")):
+            for basis, (ls, marker) in basis_style.items():
+                points = d_df[d_df["basis"] == basis].sort_values("p", ascending=True)
+                if points.empty:
+                    continue
+                draw_pl(ax, f"d{d} {basis.upper()}", points, colors[code][i],
+                        linestyle=ls, marker=marker)
+        ax.set_yscale("log")
+        ax.set_xlabel("Physical Error Rate")
+        ax.set_ylabel("Logical Error Rate (error bars: 1σ Wilson)")
+        ax.set_title(name)
+        ax.grid(True, which="both", alpha=0.5)
+        ax.legend(fontsize=8)
+
+    fig.suptitle(f"Memory-basis comparison (solid: X, dashed: Z) — η = {eta_label}")
+    fig.tight_layout()
+    fig.savefig(f"{outdir}/basis_{eta_label}.pdf")
+    plt.close(fig)
 
 def render_threshold(points: pd.DataFrame, outdir: str):
     os.makedirs(outdir, exist_ok=True)
@@ -191,10 +222,16 @@ def render_figures(df: pd.DataFrame, outdir):
         mpl.rcParams["font.size"] = 12
         mpl.rcParams["lines.linewidth"] = 1.5
 
-        for eta, eta_df in df.groupby("eta"):
+        # Draw inter-code comparison of pl and the thresholds for X-memory results
+        df_x = df[df["basis"] == "x"]
+        for eta, eta_df in df_x.groupby("eta"):
             render_eta(float(eta), eta_df, outdir)
+        render_threshold(df_x, outdir)
 
-        render_threshold(df, outdir)
+        # Per-eta intra-code X- vs Z-memory comparison
+        for eta, eta_df in df.groupby("eta"):
+            render_eta_basis(float(eta), eta_df, outdir)
+
         print(f"☑ Results saved to {outdir}")
 
 def render_diagrams(outdir: str) -> None:
@@ -224,10 +261,10 @@ def print_summary(df: pd.DataFrame):
     total_samples = Text(f"Total number of samples: {len(df)}")
     zero_error_count = Text(f"Number of zero-error samples: {str((df["errors"] == 0).sum())}")
 
-    for col in ["eta", "code", "threshold", "error", "reduced chi-square"]:
+    for col in ["eta", "code", "threshold (X-memory)", "error", "reduced chi-square"]:
         table.add_column(col)
-    
-    thresholds = estimate_all_thresholds(df)
+
+    thresholds = estimate_all_thresholds(df[df["basis"] == "x"])
     for (eta, code), fit in thresholds.items():
         table.add_row(str(eta), str(code), str(fit.p_th), str(fit.p_th_err), str(fit.chi2_red))
 

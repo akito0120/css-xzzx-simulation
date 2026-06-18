@@ -4,7 +4,6 @@ from .shared import biased_pauli_rates
 
 class CodeCapacityCircuitBuilder(BaseCircuitBuilder):
     # Noise model: code capacity
-    # Memory basis: X
 
     def build(self) -> stim.Circuit:
         circuit = stim.Circuit()
