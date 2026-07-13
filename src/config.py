@@ -1,20 +1,23 @@
 ETAS: list[float] = [0.5, 1, 10, 30, 100, float("inf")]
 CODE_TYPES: list[str] = ["css", "xzzx"]
-DISTANCES: list[int] = [3, 5, 7, 9, 11]
-BASES: list[str] = ["x", "z"]
+DISTANCES: list[int] = [3, 5, 7, 9, 11, 13, 15, 17, 19]
 
-P_STEP: float = 0.001
+def build_window(center: float) -> float:
+    half_width = 0.003
+    return (center - half_width, center + half_width)
+
+P_STEP: float = 0.0001
 P_WINDOWS: dict[tuple[float, str], tuple[float, float]] = {
-    (0.5, "css"): (0.001, 0.02),
-    (0.5, "xzzx"): (0.001, 0.02),
-    (1, "css"): (0.001, 0.02),
-    (1, "xzzx"): (0.001, 0.02),
-    (10, "css"): (0.001, 0.02),
-    (10, "xzzx"): (0.005, 0.025),
-    (30, "css"): (0.001, 0.02),
-    (30, "xzzx"): (0.007, 0.03),
-    (100, "css"): (0.001, 0.02),
-    (100, "xzzx"): (0.007, 0.03),
-    (float("inf"), "css"): (0.001, 0.02),
-    (float("inf"), "xzzx"): (0.012, 0.035),
+    (0.5, "css"): build_window(0.007),
+    (0.5, "xzzx"): build_window(0.007),
+    (1, "css"): build_window(0.0065),
+    (1, "xzzx"): build_window(0.0078),
+    (10, "css"): build_window(0.006),
+    (10, "xzzx"): build_window(0.013),
+    (30, "css"): build_window(0.006),
+    (30, "xzzx"): build_window(0.016),
+    (100, "css"): build_window(0.006),
+    (100, "xzzx"): build_window(0.019),
+    (float("inf"), "css"): build_window(0.006),
+    (float("inf"), "xzzx"): build_window(0.022),
 }

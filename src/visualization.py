@@ -8,13 +8,8 @@ from config import DISTANCES
 from code_builder import build_rotated_surface_code, build_xzzx_code
 from circuit_builder import CodeCapacityCircuitBuilder
 from simulation import wilson_interval
-from threshold import estimate_threshold, estimate_all_thresholds
-from rich.status import Status
+from threshold import estimate_threshold
 import pandas as pd
-from rich.console import Console, Group
-from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
 
 def generate_pl_colors(n_dist: int):
     return {
@@ -36,40 +31,40 @@ def fmt_eta(eta: float) -> str:
 def draw_collapse(path, eta, df: pd.DataFrame, colors):
     # Rescale each point to x = (p - p_th) * d^(1/nu) and plot p_L against it
     # Under the FSS ansatz all distances collapse onto a single curve
-    fig, axes = plt.subplots(1, 2, figsize=(22, 10), dpi=600)
+    fig, axes = plt.subplots(1, 2, figsize=(18, 10), dpi=600)
     for ax, (code, name) in zip(axes, [("css", "CSS"), ("xzzx", "XZZX")]):
         code_df = df[df["code"] == code]
         if code_df.empty:
             continue
         fit = estimate_threshold(code_df)
-        D, mu = fit.popt[5], fit.popt[6]
-        x_all, pL_all = [], []
+        x_all = []
         for i, (d, d_df) in enumerate(code_df.groupby("d")):
-            ps_arr = d_df["p"].to_numpy()
-            ds_arr = d_df["d"].to_numpy()
-            p_Ls = d_df["pl"].to_numpy() - D * ds_arr ** (-1.0 / mu)
-            errs = d_df["errors"].to_numpy()
-            measured = errs > 0
-            x = (ps_arr - fit.p_th) * ds_arr ** (1.0 / fit.nu)
-            ax.scatter(x[measured], p_Ls[measured], s=18, color=colors[code][i], label=f"{code}_d{d}")
-            x_all.append(x[measured]); pL_all.append(p_Ls[measured])
+            if d not in fit.distances:
+                continue
 
-        # Overlay the fitted scaling function f(x) = a + b x + c x^2
-        # drawn only over the span of the actual data
-        a, b, c = fit.popt[2], fit.popt[3], fit.popt[4]
+            ps = d_df["p"].to_numpy()
+            ds = d_df["d"].to_numpy()
+            # pls = d_df["pl"].to_numpy() - fit.D * ds ** (-1.0 / fit.mu)
+            pls = d_df["pl"].to_numpy()
+
+            x = (ps - fit.p_th) * ds ** (1.0 / fit.nu)
+            x_abs = np.abs(x)
+            keep = x_abs < fit.x_window
+
+            ax.scatter(x[keep], pls[keep], s=18, color=colors[code][i], label=f"{code}_d{d}")
+            x_all.append(x[keep]);
+
+        # Overlay the fitted f(x)
         x_all = np.concatenate(x_all) if x_all else np.array([0.0])
-        pL_all = np.concatenate(pL_all) if pL_all else np.array([0.0])
         xs = np.linspace(x_all.min(), x_all.max(), 200)
-        ax.plot(xs, a + b * xs + c * xs ** 2, color="black", lw=1.0,
-                label="fitted f(x)")
-        if pL_all.size:
-            ax.set_ylim(0, 1.15 * float(pL_all.max()))
+        ax.plot(xs, fit.a + fit.b * xs + fit.c * xs ** 2, color="black", lw=1.0, label="fitted f(x)")
         ax.set_xlabel(r"$(p - p_{th})\, d^{1/\nu}$")
         ax.set_ylabel("Logical Error Rate")
         ax.set_title(
-            f"{name}: p_th={fit.p_th:.4f}±{fit.p_th_err:.4f}, "
-            f"ν={fit.nu:.2f}±{fit.nu_err:.2f}, μ={fit.mu:.2f}, "
-            f"χ²_red={fit.chi2_red:.2f}, n={fit.n_points} (|x|≤{fit.x_max:.2g})"
+            f"{name}: " r"$p_{th}$" f"={fit.p_th:.6f}±{fit.p_th_err:.6f}, "
+            r"$\nu$" f"={fit.nu:.2f}, "
+            r"$\chi^2_{red}$" f"={fit.chi2_red:.6f}, "
+            f"p-value = {fit.p_value:.4f}"
         )
         ax.grid(True, alpha=0.4)
         ax.legend(fontsize=8)
@@ -78,6 +73,7 @@ def draw_collapse(path, eta, df: pd.DataFrame, colors):
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
+    print(f"- Rendered {path} ✔")
 
 def draw_pl(ax, label, points: pd.DataFrame, color, linestyle="-", marker="o"):
     # Draw logical error rates
@@ -115,31 +111,37 @@ def render_eta(eta: float, df: pd.DataFrame, outdir: str) -> None:
 
     n_dist = df["d"].nunique()
     colors = generate_pl_colors(n_dist)
-    fig, ax = plt.subplots(figsize=(12, 8), dpi=600)
-    for code, code_df in df.groupby("code"):
+    p_th_colors = generate_p_th_colors()
+
+    fig, axes = plt.subplots(1, 2, figsize=(22, 8), dpi=600, sharey=True)
+    for ax, (code, name) in zip(axes, [("css", "CSS"), ("xzzx", "XZZX")]):
+        code_df = df[df["code"] == code]
+        if code_df.empty:
+            continue
         for i, (d, points) in enumerate(code_df.groupby("d")):
             draw_pl(ax, f"{code}_d{d}", points.sort_values("p", ascending=True), colors[code][i])
 
-    # Draw thresholds (vertical line + 1-sigma uncertainty band)
-    p_th_colors = generate_p_th_colors()
-    for code, points in df.groupby("code"):
+        # Draw threshold (vertical line + 1-sigma uncertainty band)
         color = p_th_colors[code]
-        fit = estimate_threshold(points)
+        fit = estimate_threshold(code_df)
         ax.axvline(x=fit.p_th, linestyle="--", label=f"{code} p_th = {fit.p_th:.6f} ± {fit.p_th_err:.6f}", color=color)
         ax.axvspan(fit.p_th - fit.p_th_err, fit.p_th + fit.p_th_err, alpha=0.1, color=color)
 
-    ax.set_xscale('linear')
-    ax.set_yscale('log')
+        ax.set_xscale('linear')
+        ax.set_yscale('log')
+        ax.set_xlabel('Physical Error Rate')
+        ax.set_ylabel('Logical Error Rate (error bars: 1σ Wilson)')
+        ax.set_title(name)
+        ax.grid(True, which="both", alpha=0.5)
+        ax.legend()
 
-    ax.set_xlabel('Physical Error Rate')
-    ax.set_ylabel('Logical Error Rate (error bars: 1σ Wilson)')
-    ax.set_title(f'Rotated CSS Surface Code vs XZZX Code Simulation Results with η = {eta_label}')
+    fig.suptitle(f'Rotated CSS Surface Code vs XZZX Code Simulation Results with η = {eta_label}')
+    fig.tight_layout()
 
-    ax.grid(True, which="both", alpha=0.5)
-    ax.legend()
-
-    plt.savefig(f"{outdir}/result_{eta_label}.pdf")
+    path = f"{outdir}/result_{eta_label}.pdf"
+    fig.savefig(path)
     plt.close(fig)
+    print(f"- Rendered {path} ✔")
 
     draw_collapse(f"{outdir}/collapse_{eta_label}.pdf", eta_label, df, colors)
 
@@ -212,29 +214,27 @@ def render_threshold(points: pd.DataFrame, outdir: str):
     ax.grid(True, which="both", alpha=0.4)
     ax.legend()
 
-    fig.savefig(f"{outdir}/threshold.pdf")
+    path = f"{outdir}/threshold.pdf"
+    fig.savefig(path)
     plt.close(fig)
+    print(f"- Rendered {path} ✔")
 
 def render_figures(df: pd.DataFrame, outdir):
-    with Status("Rendering results", spinner="arc"):
-        os.makedirs(outdir, exist_ok=True)
-        mpl.rcParams["font.family"] = "serif"
-        mpl.rcParams["font.size"] = 12
-        mpl.rcParams["lines.linewidth"] = 1.5
+    print("Rendering results...")
+    os.makedirs(outdir, exist_ok=True)
+    mpl.rcParams["font.family"] = "serif"
+    mpl.rcParams["font.size"] = 12
+    mpl.rcParams["lines.linewidth"] = 1.5
 
-        # Draw inter-code comparison of pl and the thresholds for X-memory results
-        df_x = df[df["basis"] == "x"]
-        for eta, eta_df in df_x.groupby("eta"):
-            render_eta(float(eta), eta_df, outdir)
-        render_threshold(df_x, outdir)
-
-        # Per-eta intra-code X- vs Z-memory comparison
-        for eta, eta_df in df.groupby("eta"):
-            render_eta_basis(float(eta), eta_df, outdir)
-
-        print(f"☑ Results saved to {outdir}")
+    # Draw inter-code comparison of pl and the thresholds for X-memory results
+    for eta, eta_df in df.groupby("eta"):
+        render_eta(float(eta), eta_df, outdir)
+    render_threshold(df, outdir)
+    
+    print(f"Results saved to {outdir} ✔\n")
 
 def render_diagrams(outdir: str) -> None:
+    print("Rendering diagrams...")
     os.makedirs(outdir, exist_ok=True)
     
     for distance in DISTANCES:
@@ -244,29 +244,14 @@ def render_diagrams(outdir: str) -> None:
             detslice = circuit.diagram("detslice-svg")
             timeline = circuit.diagram("timeline-svg")
 
-            with open(f"{outdir}/{code.name}_detslice.svg", "w") as f:
+            detslice_path = f"{outdir}/{code.name}_detslice.svg"
+            timeline_path = f"{outdir}/{code.name}_timeline.svg"
+
+            with open(detslice_path, "w") as f:
                 f.write(str(detslice))
-            with open(f"{outdir}/{code.name}_timeline.svg", "w") as f:
+                print(f"- Rendered {detslice_path} ✔")
+            with open(timeline_path, "w") as f:
                 f.write(str(timeline))
-
-def print_summary(df: pd.DataFrame):
-    console = Console()
-    table = Table(expand=True)
-
-    etas = df["eta"].unique().tolist()
-    ds = df["d"].unique().tolist()
-    codes = df["code"].unique().tolist()
-    parameters = Text(f"Parameters\n - eta = {etas}\n - distances = {ds}\n - code types = {codes}")
-
-    total_samples = Text(f"Total number of samples: {len(df)}")
-    zero_error_count = Text(f"Number of zero-error samples: {str((df["errors"] == 0).sum())}")
-
-    for col in ["eta", "code", "threshold (X-memory)", "error", "reduced chi-square"]:
-        table.add_column(col)
-
-    thresholds = estimate_all_thresholds(df[df["basis"] == "x"])
-    for (eta, code), fit in thresholds.items():
-        table.add_row(str(eta), str(code), str(fit.p_th), str(fit.p_th_err), str(fit.chi2_red))
-
-    content = Group(parameters, total_samples, zero_error_count, table)
-    console.print(Panel(content, title="SUMMARY"))
+                print(f"- Rendered {timeline_path} ✔")
+    
+    print(f"Diagrams saved to {outdir} ✔\n")

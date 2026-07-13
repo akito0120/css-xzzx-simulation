@@ -3,17 +3,17 @@ import argparse
 
 import pandas as pd
 import pandera.pandas as pa
-from simulation import sweep, verify_distance_preservation
-from visualization import render_figures, render_diagrams, print_summary
+from simulation import sweep, validate_distance_preservation
+from visualization import render_figures, render_diagrams
 
 def parse_args():
     ap = argparse.ArgumentParser()
     ap.add_argument("--outdir", default="results")
-    ap.add_argument("--max-shots", type=int, default=1_000_000)
-    ap.add_argument("--target-errors", type=int, default=20000)
+    ap.add_argument("--max-shots", type=int, default=300_000)
+    ap.add_argument("--target-errors", type=int, default=30_000)
     ap.add_argument("--workers", type=int, default=max(os.cpu_count() - 4, 1))
     ap.add_argument("--decoder", choices=["mwpm", "bp", "uf"], default="mwpm")
-    ap.add_argument("--print-progress", action="store_true")
+    ap.add_argument("--print-progress", action="store_true", default=True)
     ap.add_argument("--from-data", default=None)
     return ap.parse_args()
 
@@ -26,7 +26,6 @@ sample_schema = pa.DataFrameSchema({
     "sigma": pa.Column(float),
     "errors": pa.Column(int),
     "shots": pa.Column(int),
-    "basis": pa.Column(str, pa.Check.isin(["x", "z"])),
 })
 
 if __name__ == "__main__":
@@ -43,8 +42,12 @@ if __name__ == "__main__":
         df = pd.read_csv(args.from_data)
         df = sample_schema.validate(df)
     else:
+        print(f"Max shots = {args.max_shots}")
+        print(f"Target errors = {args.target_errors}")
+        print(f"Decoder = {args.decoder}")
+        
         # Verify, sweep, save result and plot
-        verify_distance_preservation()
+        validate_distance_preservation()
         df = sweep(
             max_shots=args.max_shots,
             target_errors=args.target_errors,
@@ -53,8 +56,7 @@ if __name__ == "__main__":
             print_progress=args.print_progress,
         )
         df.to_csv(f"{args.outdir}/samples.csv", index=False)
-        print(f"☑ Samples saved to {args.outdir}/samples.csv")
+        print(f"Samples saved to {args.outdir}/samples.csv ✔\n")
 
     render_figures(df, figures_outdir)
     render_diagrams(diagrams_outdir)
-    print_summary(df)

@@ -3,8 +3,7 @@ import numpy as np
 from typing import Optional
 from code_builder import build_code
 from circuit_builder import CircuitLevelCircuitBuilder
-from config import ETAS, CODE_TYPES, DISTANCES, BASES, P_STEP, P_WINDOWS
-from rich.status import Status
+from config import ETAS, CODE_TYPES, DISTANCES, P_STEP, P_WINDOWS
 from joblib import Parallel, delayed
 from beliefmatching import BeliefMatchingSinterDecoder
 from uf_decoder import UnionFindSinterDecoder
@@ -48,14 +47,13 @@ def generate_params():
             ps = physical_error_rates(eta, code_type)
             for distance in DISTANCES:
                 for p in ps:
-                    for basis in BASES:
-                        yield (eta, code_type, distance, p, basis)
-
+                    yield (eta, code_type, distance, p)
+                        
 def generate_tasks():
     def build_task(param: tuple[float, str, int, float, str]) -> sinter.Task:
-        eta, code_type, distance, p, basis = param
+        eta, code_type, distance, p = param
         code = build_code(code_type, distance)
-        circuit = CircuitLevelCircuitBuilder(code, p, eta, basis=basis.upper()).build()
+        circuit = CircuitLevelCircuitBuilder(code, p, eta, basis='X').build()
         dem = circuit.detector_error_model(
             decompose_errors=True,
             approximate_disjoint_errors=True
@@ -68,61 +66,61 @@ def generate_tasks():
                 "eta": str(eta),
                 "d": distance,
                 "p": p,
-                "basis": basis,
             },
         )
 
     for param in generate_params():
         yield build_task(param)
 
-def sweep(max_shots: int, target_errors: int, num_workers: int, decoder: str, print_progress: bool = False) -> pd.DataFrame:
+def sweep(max_shots: int, target_errors: int, 
+          num_workers: int, decoder: str, print_progress: bool = True) -> pd.DataFrame:
     decoder, custom_decoders = resolve_decoder(decoder)
-    with Status("Sweeping", spinner="arc"):
-        stats = sinter.collect(
-            num_workers=num_workers,
-            tasks=generate_tasks(),
-            decoders=[decoder],
-            custom_decoders=custom_decoders,
-            max_shots=max_shots,
-            max_errors=target_errors,
-            max_batch_size=1024,
-            print_progress=print_progress
-        )
+    print("Sweeping...")
 
-        rows: list[dict] = list()
-        for stat in stats:
-            meta, shots, errors = stat.json_metadata, stat.shots, stat.errors
-            pl = errors / shots if shots > 0 else 0.0
-            low, high = wilson_interval(errors, shots, z=1.0)
-            rows.append({
-                "code": meta["code"],
-                "eta": float(meta["eta"]),
-                "d": meta["d"],
-                "p": meta["p"],
-                "pl": pl,
-                "sigma": (high - low) / 2.0,
-                "errors": errors,
-                "shots": shots,
-                "basis": meta["basis"],
-            })
+    stats = sinter.collect(
+        num_workers=num_workers,
+        tasks=generate_tasks(),
+        decoders=[decoder],
+        custom_decoders=custom_decoders,
+        max_shots=max_shots,
+        max_errors=target_errors,
+        max_batch_size=1024,
+        print_progress=print_progress
+    )
 
-        print("☑ Sweeping completed")
-        return pd.DataFrame(rows)
+    rows: list[dict] = list()
+    for stat in stats:
+        meta, shots, errors = stat.json_metadata, stat.shots, stat.errors
+        pl = errors / shots if shots > 0 else 0.0
+        low, high = wilson_interval(errors, shots, z=1.0)
+        rows.append({
+            "code": meta["code"],
+            "eta": float(meta["eta"]),
+            "d": meta["d"],
+            "p": meta["p"],
+            "pl": pl,
+            "sigma": (high - low) / 2.0,
+            "errors": errors,
+            "shots": shots,
+        })
 
-def verify_distance_preservation():
-    def verify(eta: float, code_type: str, distance: int, basis: str):
+    print("Sweeping completed ✔")
+    return pd.DataFrame(rows)
+
+def validate_distance_preservation():
+    def validate(code_type: str, distance: int, basis: str):
         code = build_code(code_type, distance)
-        circuit = CircuitLevelCircuitBuilder(code, 0.1, eta, basis=basis.upper()).build()
+        circuit = CircuitLevelCircuitBuilder(code, 0.1, 0.5, basis=basis).build()
         err = circuit.shortest_graphlike_error()
         if len(err) != distance:
             raise AssertionError(f"Graphlike fault distance {len(err)} != code distance {distance}")
+        print(f"- Validated {code_type} with d = {distance}, basis = {basis} ✔")
 
-    with Status("Verifying circuits", spinner="arc"):
-        Parallel(n_jobs=-1)(
-            delayed(verify)(eta, code_type, distance, basis)
-            for eta in ETAS
-            for code_type in CODE_TYPES
-            for distance in DISTANCES
-            for basis in BASES
-        )
-        print("☑ Circuit verification completed")
+    print("Validating circuits...")
+    Parallel(n_jobs=-1)(
+        delayed(validate)(code_type, distance, basis)
+        for code_type in CODE_TYPES
+        for distance in DISTANCES
+        for basis in ["X", "Z"]
+    )
+    print("Circuit validation completed ✔\n")
