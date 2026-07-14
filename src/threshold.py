@@ -29,6 +29,10 @@ def fss_with_correction(X, p_th, nu, a, b, c, D, mu):
     x = (p - p_th) * d ** (1.0 / nu)
     return a + (b * x) + (c * x * x) + D * d ** (-1.0 / mu)
 
+def crossing_seed(points):
+    piv = points.pivot_table(index="p", columns="d", values="pl").dropna()
+    return float(piv.std(axis=1).idxmin())
+
 def estimate_threshold(points: pd.DataFrame, seed: int = 0, n_boot: int = 5000) -> FitResult:
     ps = points["p"].to_numpy()
     ds = points["d"].to_numpy()
@@ -36,32 +40,35 @@ def estimate_threshold(points: pd.DataFrame, seed: int = 0, n_boot: int = 5000) 
     sigs = points["sigma"].to_numpy()
     shots = points["shots"].to_numpy()
 
-    distances = [11, 13, 15]
+    distances = [11, 13, 15, 17, 19]
     keep = np.isin(ds, distances)
     ps, ds, pls, sigs, shots = ps[keep], ds[keep], pls[keep], sigs[keep], shots[keep]
 
-    # p_hi = float(np.max(ps))
-    # lower = [0.0,    0.5, -np.inf, -np.inf, -np.inf, -np.inf, 0.3]
-    # upper = [p_hi,   5.0,  np.inf,  np.inf,  np.inf,  np.inf, 10.0]
+    # lower = [0.0, 0.5, -np.inf, -np.inf, -np.inf, -np.inf, 0.3]
+    # upper = [float(np.max(ps)), 5.0,  np.inf,  np.inf,  np.inf,  np.inf, 10.0]
+    # bounds = (lower, upper)
 
-    p0 = [float(np.median(ps)), 1.0, float(np.median(pls)), 0.0, 0.0]
+    lower = [0.0, 1.0, -np.inf, -np.inf, -np.inf]
+    upper = [1.0, 2.0, np.inf, np.inf, np.inf]
+    bounds = (lower, upper)
+
+    # p0 = [float(np.median(ps)), 1.0, float(np.median(pls)), 0.0, 0.0]
     # p0_with_correction = [float(np.median(ps)), 1.0, float(np.median(pls)), 0.0, 0.0, 0.0, 1.5]
 
-    popt, pcov = curve_fit(
-        fss, (ps, ds), pls, sigma=sigs, p0=p0, 
-        maxfev=50000, absolute_sigma=True
-    )
+    p_th_0 = crossing_seed(points[points["d"].isin(distances)])
+    nu_0 = 1.1
 
-    x_window = 0.005
-    x_abs = np.abs((ps - popt[0]) * ds ** (1.0 / popt[1]))
+    x_window = 0.006
+    x_abs = np.abs((ps - p_th_0) * ds ** (1.0 / nu_0))
     in_win = x_abs <= x_window
     ps, ds, pls, sigs, shots = ps[in_win], ds[in_win], pls[in_win], sigs[in_win], shots[in_win]
 
     popt, pcov = curve_fit(
-        fss, (ps, ds), pls, sigma=sigs, p0=p0, 
-        maxfev=50000, absolute_sigma=True
+        fss, (ps, ds), pls, sigma=sigs, 
+        p0=[p_th_0, nu_0, np.median(pls), 0.0, 0.0], 
+        maxfev=50000, absolute_sigma=True, bounds=bounds
     )
-
+    
     # Reduced chi-square
     resid = (pls - fss((ps, ds), *popt)) / sigs
     dof = max(len(pls) - len(popt), 1)
