@@ -1,16 +1,17 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
-from threshold import crossing_seed, estimate_threshold
+from threshold import estimate_threshold
 
 def physical_qubits(d: int) -> int:
     return 2 * d * d - 1
 
-KAPPA = 0.5
+def error_dimension(d):
+    return np.floor((np.asarray(d, dtype=float) + 1.0) / 2.0)
 
 def supp_model(X, lnA):
     d, ln_ratio = X  # ln_ratio = ln(p / p_th)
-    return lnA + KAPPA * d * ln_ratio
+    return lnA + error_dimension(d) * ln_ratio
 
 def suppression_fit(sub: pd.DataFrame, p_th: float):
     d = sub["d"].to_numpy(dtype=float)
@@ -25,14 +26,14 @@ def suppression_fit(sub: pd.DataFrame, p_th: float):
         supp_model, (d, ln_ratio), ln_eps, sigma=sig_ln,
         p0=[float(np.median(ln_eps))], absolute_sigma=True, maxfev=50000,
     )
-    return float(popt[0]), KAPPA, pcov
+    return float(popt[0]), pcov
 
-def required_distance(lnA: float, kappa: float, p_th: float, p_common: float, eps_target: float) -> int:
-    # Invert ln eps = lnA + kappa*d*ln(p/p_th) for smallest odd d with eps <= eps_target.
-    denom = kappa * np.log(p_common / p_th)
+def required_distance(lnA: float, p_th: float, p_common: float, eps_target: float) -> int:
+    # Invert ln eps = lnA + ((d+1)/2)*ln(p/p_th) for smallest odd d with eps <= eps_target.
+    denom = np.log(p_common / p_th)
     if not (denom < 0) or not np.isfinite(denom):
         return -1  # not suppressing (p >= p_th, or bad fit)
-    d = (np.log(eps_target) - lnA) / denom
+    d = 2.0 * (np.log(eps_target) - lnA) / denom - 1.0
     if not np.isfinite(d) or d <= 0:
         return -1
     d = int(np.ceil(d))
@@ -47,8 +48,8 @@ def subthreshold_slice(g: pd.DataFrame, p_th: float, margin: float = 1.0, min_po
     return sub
 
 def qubit_cost_row(sub: pd.DataFrame, p_th: float, p_common: float, eps_target: float, n_boot: int, rng) -> dict:
-    lnA, kappa, _ = suppression_fit(sub, p_th)
-    d_star = required_distance(lnA, kappa, p_th, p_common, eps_target)
+    lnA, _ = suppression_fit(sub, p_th)
+    d_star = required_distance(lnA, p_th, p_common, eps_target)
     n = physical_qubits(d_star) if d_star > 0 else -1
 
     d = sub["d"].to_numpy(dtype=float)
@@ -68,7 +69,7 @@ def qubit_cost_row(sub: pd.DataFrame, p_th: float, p_common: float, eps_target: 
                                 p0=[lnA], absolute_sigma=True, maxfev=50000)
         except (RuntimeError, ValueError):
             continue
-        d_b = required_distance(popt[0], KAPPA, p_th, p_common, eps_target)
+        d_b = required_distance(popt[0], p_th, p_common, eps_target)
         if d_b > 0:
             ns.append(physical_qubits(d_b))
     if ns:
@@ -80,7 +81,6 @@ def qubit_cost_row(sub: pd.DataFrame, p_th: float, p_common: float, eps_target: 
 
     return {
         "p_th": p_th,
-        "kappa": kappa,
         "d_star": d_star,
         "n": n,
         "n_err": n_err,
@@ -100,5 +100,5 @@ def qubit_cost_table(df: pd.DataFrame, p_common: float, eps_target: float, n_boo
             row = qubit_cost_row(sub, p_th, p_common, eps_target, n_boot, rng)
             row.update({"code": code, "eta": float(eta)})
             rows.append(row)
-    cols = ["eta", "code", "p_th", "kappa", "d_star", "n", "n_err", "n_lo", "n_hi", "n_points"]
+    cols = ["eta", "code", "p_th", "d_star", "n", "n_err", "n_lo", "n_hi", "n_points"]
     return pd.DataFrame(rows)[cols].sort_values(["code", "eta"]).reset_index(drop=True)
