@@ -9,7 +9,6 @@ from code_builder import build_rotated_surface_code, build_xzzx_code
 from circuit_builder import CodeCapacityCircuitBuilder
 from simulation import wilson_interval
 from threshold import estimate_threshold
-from qubit_cost import qubit_cost_table
 import pandas as pd
 
 def generate_pl_colors(n_dist: int):
@@ -220,66 +219,6 @@ def render_threshold(points: pd.DataFrame, outdir: str):
     plt.close(fig)
     print(f"- Rendered {path} ✔")
 
-def render_qubit_cost(df: pd.DataFrame, outdir: str,
-                      p_common: float = 0.001, eps_target: float = 1e-12,
-                      n_boot: int = 500):
-    # Physical qubits per logical qubit to reach eps_target at physical rate p_common,
-    # extrapolated via the sub-threshold scaling law, as a function of bias
-    os.makedirs(outdir, exist_ok=True)
-    tbl = qubit_cost_table(df, p_common=p_common, eps_target=eps_target, n_boot=n_boot)
-    tbl.to_csv(f"{outdir}/qubit_cost.csv", index=False)
-
-    etas = sorted(df["eta"].unique().tolist())
-    finite = [e for e in etas if e != float("inf")]
-    inf_x = (max(finite) * 10.0) if finite else 1.0
-    eta_to_x = lambda e: inf_x if e == float("inf") else e
-    colors = generate_p_th_colors()
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6), dpi=300)
-
-    # (1) physical qubits per logical qubit vs bias, per code
-    for code in ["css", "xzzx"]:
-        sub = tbl[tbl["code"] == code].sort_values("eta")
-        if sub.empty:
-            continue
-        xs = [eta_to_x(e) for e in sub["eta"]]
-        ns = sub["n"].to_numpy(dtype=float)
-        lo = sub["n_lo"].to_numpy(dtype=float)
-        hi = sub["n_hi"].to_numpy(dtype=float)
-        yerr = np.vstack([np.nan_to_num(ns - lo), np.nan_to_num(hi - ns)])
-        ax1.errorbar(xs, ns, yerr=yerr, marker="o", linestyle="-", capsize=3,
-                     color=colors[code], label=code.upper())
-    ax1.set_yscale("log")
-    ax1.set_ylabel("Physical qubits / logical qubit  (2d*²−1)")
-
-    # (2) savings ratio n_CSS / n_XZZX vs bias
-    piv = tbl.pivot(index="eta", columns="code", values="n")
-    if {"css", "xzzx"}.issubset(piv.columns):
-        piv = piv.sort_index()
-        xs = [eta_to_x(e) for e in piv.index]
-        ax2.plot(xs, piv["css"] / piv["xzzx"], marker="s", color="black")
-        ax2.axhline(1.0, color="gray", linestyle=":", label="no advantage")
-        ax2.set_ylabel(r"Qubit saving  $n_\mathrm{CSS}/n_\mathrm{XZZX}$")
-        ax2.legend()
-
-    for ax in (ax1, ax2):
-        ax.set_xscale("log")
-        ax.set_xticks([eta_to_x(e) for e in etas])
-        ax.set_xticklabels([r"$\infty$" if e == float("inf") else fmt_eta(e) for e in etas])
-        ax.set_xlabel(r"Bias $\eta = p_Z / (p_X + p_Y)$")
-        ax.grid(True, which="both", alpha=0.4)
-    
-    ax1.legend()
-    fig.suptitle(
-        f"Physical-qubit cost vs bias  "
-        f"(target per-cycle $\\epsilon$={eps_target:.0e}, physical $p$={p_common:g}; "
-        f"memory only, square codes)")
-    fig.tight_layout()
-    path = f"{outdir}/qubit_cost.pdf"
-    fig.savefig(path)
-    plt.close(fig)
-    print(f"- Rendered {path} ✔ (table: {outdir}/qubit_cost.csv)")
-
 def render_figures(df: pd.DataFrame, outdir):
     print("Rendering results...")
     os.makedirs(outdir, exist_ok=True)
@@ -291,7 +230,6 @@ def render_figures(df: pd.DataFrame, outdir):
     for eta, eta_df in df.groupby("eta"):
         render_eta(float(eta), eta_df, outdir)
     render_threshold(df, outdir)
-    render_qubit_cost(df, outdir)
 
     print(f"Results saved to {outdir} ✔\n")
 
